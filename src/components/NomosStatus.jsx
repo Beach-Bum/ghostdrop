@@ -25,7 +25,7 @@ export default function NomosStatus({ compact = false }) {
     streamRef.current?.abort();
     watchBlocks(
       (b) => setBlocks(prev => [b, ...prev].slice(0, 6)),
-      (e) => console.warn("[Nomos stream]", e?.message)
+      (e) => console.warn("[Logos Blockchain stream]", e?.message)
     ).then(ctrl => { streamRef.current = ctrl; }).catch(() => {});
     return () => streamRef.current?.abort();
   }, [status?.online]);
@@ -33,7 +33,7 @@ export default function NomosStatus({ compact = false }) {
   if (loading) return (
     <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 0" }}>
       <Spinner />
-      <span style={{ fontFamily: C.mono, fontSize: 11, color: C.textDim }}>Checking Nomos node...</span>
+      <span style={{ fontFamily: C.mono, fontSize: 11, color: C.textDim }}>Checking Logos Blockchain node...</span>
     </div>
   );
 
@@ -43,14 +43,14 @@ export default function NomosStatus({ compact = false }) {
     <div style={{ display: "flex", alignItems: "center", gap: 8, fontFamily: C.mono, fontSize: 11 }}>
       <span className={status.online ? "ld-pulse" : ""} style={{ width: 6, height: 6, borderRadius: "50%", background: status.online ? C.accent : C.red, display: "inline-block" }} />
       <span style={{ color: C.textDim }}>
-        Nomos: {status.online ? `synced · block ${status.blockHeight?.toLocaleString()} · ${status.peers}p` : "offline — mock"}
+        Logos Blockchain: {status.online ? `synced · block ${status.blockHeight?.toLocaleString()} · ${status.peers}p` : "offline — mock"}
       </span>
     </div>
   );
 
   return (
     <Panel style={{ marginBottom: 16 }}>
-      <SectionLabel>Nomos Node</SectionLabel>
+      <SectionLabel>Logos Blockchain Node</SectionLabel>
 
       <div style={{ padding: "10px 14px", marginBottom: 14, background: status.online ? C.accentFaint : C.redFaint, border: `1px solid ${status.online ? C.accentDim : C.red}`, fontFamily: C.mono, fontSize: 11, color: status.online ? C.accent : C.red, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <span>
@@ -110,7 +110,7 @@ export default function NomosStatus({ compact = false }) {
       ) : (
         <div>
           <div style={{ fontFamily: C.mono, fontSize: 11, color: C.textDim, lineHeight: 1.8, marginBottom: 12 }}>
-            Run a local Nomos node to enable real settlement:
+            Run a local Logos Blockchain node to enable real settlement:
           </div>
           <div style={{ background: C.bg, border: `1px solid ${C.border}`, padding: "10px 12px", fontFamily: C.mono, fontSize: 10, marginBottom: 10 }}>
             <div style={{ color: C.textDim, marginBottom: 2 }}># Clone + build</div>

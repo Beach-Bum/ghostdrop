@@ -1,13 +1,13 @@
 /**
  * Codex Storage Service — Real @codex-storage/sdk-js Integration
  *
- * Codex is the decentralised storage layer of the Logos stack.
+ * Logos Storage is the decentralised storage layer of the Logos stack.
  * Documents are content-addressed (CID) and replicated across nodes.
  *
  * SDK:  @codex-storage/sdk-js  v0.1.3
  * Docs: https://github.com/codex-storage/codex-js
  *
- * Local node: Codex runs as a local daemon the user operates.
+ * Local node: Logos Storage runs as a local daemon the user operates.
  * Default API endpoint: http://localhost:8080
  * Override via:  VITE_CODEX_NODE_URL environment variable
  *
@@ -47,7 +47,7 @@ let _client = null;
 let _nodeOnline = null;
 
 function getClient() {
-  if (!_client) _client = new Codex(CODEX_NODE_URL);
+  if (!_client) _client = new Logos Storage(CODEX_NODE_URL);
   return _client;
 }
 
@@ -57,7 +57,7 @@ let _healthCacheTs = 0;
 let _healthCache   = null;
 
 /**
- * Check whether the local Codex node is reachable.
+ * Check whether the local Logos Storage node is reachable.
  * Result is cached for 30 s. Pass force=true to bypass.
  *
  * @returns {{ online, version, peerId, addrs, spaceTotal, spaceFree, spaceUsed }}
@@ -100,7 +100,7 @@ export async function checkNodeHealth(force = false) {
 // ─── Upload ───────────────────────────────────────────────────────
 
 /**
- * Upload document bytes to Codex. Returns content-addressed CID.
+ * Upload document bytes to Logos Storage. Returns content-addressed CID.
  *
  * Uses BrowserUploadStrategy (XHR + progress events) when node is up.
  * Falls back to a deterministic mock CID derived from the content hash.
@@ -127,7 +127,7 @@ export async function upload(data, mimeType = "application/octet-stream", filena
     const { result } = client.data.upload(strategy);
     const res        = await result;
 
-    if (res.error) throw new Error(res.data?.message || "Codex upload failed");
+    if (res.error) throw new Error(res.data?.message || "Logos Storage upload failed");
 
     // res.data is the raw CID string returned by the node
     const cid = res.data.trim();
@@ -135,7 +135,7 @@ export async function upload(data, mimeType = "application/octet-stream", filena
   }
 
   // ── Offline fallback ─────────────────────────────────────────────
-  console.warn("[Codex] Node offline — using deterministic mock CID");
+  console.warn("[Logos Storage] Node offline — using deterministic mock CID");
   await _mockDelay(1800);
   const bytes = data instanceof Blob ? new Uint8Array(await data.arrayBuffer()) : data;
   const cid   = `Qm${_b58(sha256(bytes), 44)}`;
@@ -145,7 +145,7 @@ export async function upload(data, mimeType = "application/octet-stream", filena
 // ─── Retrieve ─────────────────────────────────────────────────────
 
 /**
- * Download content from Codex by CID.
+ * Download content from Logos Storage by CID.
  *
  * Tries the local node cache first (fast path). If the CID isn't local,
  * triggers a network retrieval — may take time as node locates peers.
@@ -193,7 +193,7 @@ export async function retrieve(cid, onProgress) {
     return out;
   }
 
-  console.warn("[Codex] Node offline — returning mock bytes for", cid);
+  console.warn("[Logos Storage] Node offline — returning mock bytes for", cid);
   await _mockDelay(600);
   return new TextEncoder().encode(`[MOCK CODEX CONTENT — CID: ${cid}]`);
 }
@@ -201,7 +201,7 @@ export async function retrieve(cid, onProgress) {
 // ─── Manifest ─────────────────────────────────────────────────────
 
 /**
- * Fetch Codex manifest for a CID (proves existence on the network).
+ * Fetch Logos Storage manifest for a CID (proves existence on the network).
  * Returns metadata: rootHash, blockCount, blockSize, filename, mimetype.
  *
  * @param {string} cid
@@ -224,7 +224,7 @@ export async function fetchManifest(cid) {
 // ─── List Local CIDs ──────────────────────────────────────────────
 
 /**
- * List CIDs currently held by the local Codex node.
+ * List CIDs currently held by the local Logos Storage node.
  * @returns {Array<{ cid: string, manifest: Object }>}
  */
 export async function listLocalCIDs() {
@@ -238,7 +238,7 @@ export async function listLocalCIDs() {
 // ─── Storage Request (Marketplace Pinning) ────────────────────────
 
 /**
- * Create a Codex Marketplace storage request for paid, long-term replication.
+ * Create a Logos Storage Marketplace storage request for paid, long-term replication.
  * Pays storage node operators to hold the content for `duration` seconds.
  *
  * Requires: local node running with marketplace enabled + funded wallet.
@@ -285,7 +285,7 @@ export async function requestStorage(cid, {
     }
 
     // Marketplace may not be enabled — warn and fall through to mock
-    console.warn("[Codex] Marketplace storage request failed:", res.data?.message);
+    console.warn("[Logos Storage] Marketplace storage request failed:", res.data?.message);
   }
 
   await _mockDelay(1200);

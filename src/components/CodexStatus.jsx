@@ -1,5 +1,5 @@
 /**
- * CodexStatus — Live Codex node health panel
+ * CodexStatus — Live Logos Storage node health panel
  *
  * Shows:
  *  - Node online/offline status
@@ -48,7 +48,7 @@ export default function CodexStatus({ compact = false }) {
   if (loading) return (
     <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 0" }}>
       <Spinner />
-      <span style={{ fontFamily: C.mono, fontSize: 11, color: C.textDim }}>Checking Codex node...</span>
+      <span style={{ fontFamily: C.mono, fontSize: 11, color: C.textDim }}>Checking Logos Storage node...</span>
     </div>
   );
 
@@ -58,7 +58,7 @@ export default function CodexStatus({ compact = false }) {
   if (compact) return (
     <div style={{ display: "flex", alignItems: "center", gap: 8, fontFamily: C.mono, fontSize: 11 }}>
       <span style={{ width: 6, height: 6, borderRadius: "50%", background: health.online ? C.accent : C.red, display: "inline-block" }} className={health.online ? "ld-pulse" : ""} />
-      <span style={{ color: C.textDim }}>Codex: {health.online ? `online · ${fmtBytes(health.spaceFree)} free` : "offline — mock mode"}</span>
+      <span style={{ color: C.textDim }}>Logos Storage: {health.online ? `online · ${fmtBytes(health.spaceFree)} free` : "offline — mock mode"}</span>
     </div>
   );
 
@@ -69,7 +69,7 @@ export default function CodexStatus({ compact = false }) {
 
   return (
     <Panel style={{ marginBottom: 16 }}>
-      <SectionLabel>Codex Node</SectionLabel>
+      <SectionLabel>Logos Storage Node</SectionLabel>
 
       {/* Status banner */}
       <div style={{
@@ -146,10 +146,10 @@ export default function CodexStatus({ compact = false }) {
       ) : (
         <div style={{ fontFamily: C.mono, fontSize: 11, color: C.textDim, lineHeight: 1.8 }}>
           <div style={{ marginBottom: 12 }}>
-            To enable real Codex storage, run a local Codex node and restart the app.
+            To enable real Logos Storage storage, run a local Logos Storage node and restart the app.
           </div>
           <div style={{ background: C.bg, border: `1px solid ${C.border}`, padding: "10px 12px", fontFamily: C.mono, fontSize: 10, color: C.textDim }}>
-            <div style={{ color: C.textDim, marginBottom: 4 }}># Install + run Codex node</div>
+            <div style={{ color: C.textDim, marginBottom: 4 }}># Install + run Logos Storage node</div>
             <div style={{ color: C.text }}>docker run -p 8080:8080 codexstorage/nim-codex</div>
             <div style={{ color: C.textDim, marginTop: 8, marginBottom: 4 }}># Or download binary from:</div>
             <div style={{ color: C.accent }}>https://github.com/codex-storage/nim-codex/releases</div>

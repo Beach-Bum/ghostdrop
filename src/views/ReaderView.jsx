@@ -19,7 +19,7 @@ export default function ReaderView() {
   const [filterTag,    setFilterTag]    = useState(null);
   const [tipPool,      setTipPool]      = useState(null);
 
-  // Load publications from Nomos chain (or mock)
+  // Load publications from Logos Blockchain chain (or mock)
   useEffect(() => {
     getPublications().then((pubs) => {
       setPublications(pubs);
@@ -42,7 +42,7 @@ export default function ReaderView() {
     ? publications.filter((d) => (d.tags || []).includes(filterTag))
     : publications;
 
-  // Two-layer verification: Nomos anchor + Codex content hash
+  // Two-layer verification: Logos Blockchain anchor + Logos Storage content hash
   const runVerify = async () => {
     setVerifying(true);
     try {
@@ -87,7 +87,7 @@ export default function ReaderView() {
     <div style={{ display: "flex", alignItems: "center", gap: 10, padding: 20 }}>
       <Spinner />
       <span style={{ fontFamily: C.mono, fontSize: 11, color: C.textDim }}>
-        Querying Nomos chain for publication records…
+        Querying Logos Blockchain chain for publication records…
       </span>
     </div>
   );
@@ -166,7 +166,7 @@ export default function ReaderView() {
       <Panel style={{ marginBottom: 14 }}>
         <div style={{ fontFamily: C.mono, fontSize: 11, color: C.textDim, lineHeight: 1.9 }}>{selected.summary}</div>
         <div style={{ marginTop: 14, padding: "8px 12px", background: C.bg, border: `1px solid ${C.border}`, fontFamily: C.mono, fontSize: 10, color: C.textFaint }}>
-          Full document at Codex CID: {selected.cid?.slice(0, 30)}…
+          Full document at Logos Storage CID: {selected.cid?.slice(0, 30)}…
         </div>
       </Panel>
 
@@ -174,12 +174,12 @@ export default function ReaderView() {
       <Panel style={{ marginBottom: 14 }}>
         <SectionLabel>Two-Layer Verification</SectionLabel>
         <div style={{ fontFamily: C.mono, fontSize: 10, color: C.textDim, marginBottom: 12 }}>
-          Verifies (1) the Nomos chain anchor and (2) the Codex content hash independently.
+          Verifies (1) the Logos Blockchain chain anchor and (2) the Logos Storage content hash independently.
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 14 }}>
           <HashDisplay value={selected.hash}   label="Document Hash (SHA-256)"        color={C.textDim} />
-          <HashDisplay value={selected.cid}    label="Codex CID"                                        />
-          <HashDisplay value={selected.txHash} label="Nomos Anchor Transaction"                         />
+          <HashDisplay value={selected.cid}    label="Logos Storage CID"                                        />
+          <HashDisplay value={selected.txHash} label="Logos Blockchain Anchor Transaction"                         />
           <div style={{ display: "flex", justifyContent: "space-between", fontFamily: C.mono, fontSize: 11, padding: "8px 12px", background: C.bg, border: `1px solid ${C.border}` }}>
             <span style={{ color: C.textDim }}>Anchored at Block</span>
             <span style={{ color: C.text }}>#{selected.block?.toLocaleString()}</span>
@@ -189,7 +189,7 @@ export default function ReaderView() {
         {!verifyResult ? (
           <button className="ld-btn ld-btn-ghost" disabled={verifying} onClick={runVerify}>
             {verifying
-              ? <span style={{ display: "flex", alignItems: "center", gap: 8 }}>Verifying Nomos + Codex <Spinner /></span>
+              ? <span style={{ display: "flex", alignItems: "center", gap: 8 }}>Verifying Logos Blockchain + Logos Storage <Spinner /></span>
               : "Verify Document Integrity"}
           </button>
         ) : verifyResult.error ? (
@@ -199,10 +199,10 @@ export default function ReaderView() {
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             <div style={{ padding: "10px 12px", background: verifyResult.nomosVerified ? C.accentFaint : C.redFaint, border: `1px solid ${verifyResult.nomosVerified ? C.accentDim : C.red}`, fontFamily: C.mono, fontSize: 11, color: verifyResult.nomosVerified ? C.accent : C.red }}>
-              {verifyResult.nomosVerified ? "✓" : "✗"} Nomos anchor{verifyResult.nomosMock ? " (mock)" : ` verified at block #${verifyResult.block?.toString()?.slice(0,10) ?? "?"}`}
+              {verifyResult.nomosVerified ? "✓" : "✗"} Logos Blockchain anchor{verifyResult.nomosMock ? " (mock)" : ` verified at block #${verifyResult.block?.toString()?.slice(0,10) ?? "?"}`}
             </div>
             <div style={{ padding: "10px 12px", background: verifyResult.codexVerified ? C.accentFaint : C.redFaint, border: `1px solid ${verifyResult.codexVerified ? C.accentDim : C.red}`, fontFamily: C.mono, fontSize: 11, color: verifyResult.codexVerified ? C.accent : C.red }}>
-              {verifyResult.codexVerified ? "✓" : "✗"} Codex content hash{verifyResult.codexMock ? " (manifest only)" : " — document unmodified"}
+              {verifyResult.codexVerified ? "✓" : "✗"} Logos Storage content hash{verifyResult.codexMock ? " (manifest only)" : " — document unmodified"}
             </div>
           </div>
         )}
@@ -212,7 +212,7 @@ export default function ReaderView() {
       <Panel>
         <SectionLabel>Tip the Source</SectionLabel>
         <div style={{ fontFamily: C.mono, fontSize: 11, color: C.textDim, marginBottom: 12 }}>
-          Tips are locked as UTXO outputs on Nomos, keyed to the source's ephemeral pubkey.
+          Tips are locked as UTXO outputs on Logos Blockchain, keyed to the source's ephemeral pubkey.
           Only the holder of the matching private key can spend them. No identity revealed.
         </div>
 
@@ -243,13 +243,13 @@ export default function ReaderView() {
             <button className="ld-btn ld-btn-primary" disabled={tipping || !tipAmount} onClick={runTip}>
               {tipping
                 ? <span style={{ display: "flex", alignItems: "center", gap: 8 }}>Locking <Spinner /></span>
-                : "Lock in Nomos Escrow"}
+                : "Lock in Logos Blockchain Escrow"}
             </button>
           </div>
         ) : (
           <div>
             <div style={{ padding: "10px 12px", background: C.accentFaint, border: `1px solid ${C.accentDim}`, fontFamily: C.mono, fontSize: 11, color: C.accent, marginBottom: 10 }}>
-              ✓ {tipAmount} XMR locked as Nomos UTXO{tipResult.mock ? " (mock)" : ""}. Source claims anonymously with 12-word key.
+              ✓ {tipAmount} XMR locked as Logos Blockchain UTXO{tipResult.mock ? " (mock)" : ""}. Source claims anonymously with 12-word key.
             </div>
             <HashDisplay value={tipResult.txHash} label="Escrow Transaction" />
           </div>

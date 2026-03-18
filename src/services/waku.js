@@ -58,7 +58,7 @@ export function onStatusChange(fn) {
 // ─── Node Lifecycle ───────────────────────────────────────────────
 
 /**
- * Initialize and connect the Waku light node.
+ * Initialize and connect the Logos Messaging light node.
  * Safe to call multiple times — idempotent.
  */
 export async function connect() {
@@ -68,7 +68,7 @@ export async function connect() {
     return new Promise((resolve, reject) => {
       const unsub = onStatusChange((s) => {
         if (s === "connected") { unsub(); resolve(_node); }
-        if (s === "error") { unsub(); reject(new Error("Waku connection failed")); }
+        if (s === "error") { unsub(); reject(new Error("Logos Messaging connection failed")); }
       });
     });
   }
@@ -78,7 +78,7 @@ export async function connect() {
   try {
     _node = await createLightNode({
       defaultBootstrap: true,
-      // Use Waku's public fleet for bootstrapping
+      // Use Logos Messaging's public fleet for bootstrapping
       // In production, point to Logos-operated bootstrap nodes
     });
 
@@ -92,12 +92,12 @@ export async function connect() {
     ]);
 
     setStatus("connected");
-    console.log("[Waku] Connected. Peer count:", _node.libp2p.getPeers().length);
+    console.log("[Logos Messaging] Connected. Peer count:", _node.libp2p.getPeers().length);
     return _node;
 
   } catch (err) {
     setStatus("error");
-    console.error("[Waku] Connection failed:", err);
+    console.error("[Logos Messaging] Connection failed:", err);
     throw err;
   }
 }
@@ -181,7 +181,7 @@ export async function subscribe(topic, onMessage) {
 // ─── Store — Poll (Source Back-Channel) ──────────────────────────
 
 /**
- * Query the Waku Store for historical messages on a topic.
+ * Query the Logos Messaging Store for historical messages on a topic.
  * Used by source to check outlet replies via back-channel.
  * Source only polls — never opens a persistent connection.
  *
@@ -212,7 +212,7 @@ export async function pollStore(topic, since = 0) {
       }
     }
   } catch (err) {
-    console.warn("[Waku Store] Query failed:", err.message);
+    console.warn("[Logos Messaging Store] Query failed:", err.message);
   }
 
   return messages.reverse(); // chronological order
@@ -276,7 +276,7 @@ export async function subscribeAnnouncements(outletId, onAnnouncement) {
     try {
       onAnnouncement(JSON.parse(bytesToUtf8(payload)));
     } catch (err) {
-      console.warn("[Waku] Failed to parse announcement:", err);
+      console.warn("[Logos Messaging] Failed to parse announcement:", err);
     }
   });
 }

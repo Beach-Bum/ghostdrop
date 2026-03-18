@@ -1,26 +1,26 @@
 /**
  * Transport Anonymity Layer — Tor / I2P wrapper
  *
- * Waku provides p2p gossip-based anonymity — your IP is not sent
- * directly to the outlet. But the Waku bootstrap peers can still see
+ * Logos Messaging provides p2p gossip-based anonymity — your IP is not sent
+ * directly to the outlet. But the Logos Messaging bootstrap peers can still see
  * your IP. For high-risk sources, this module adds a Tor/I2P transport
- * layer underneath Waku's libp2p connections.
+ * layer underneath Logos Messaging's libp2p connections.
  *
  * ─── Architecture ─────────────────────────────────────────────────
  *
  *  Source Browser
  *       │
  *       ├─ [Option A] Tor Browser (recommended)
- *       │     └─ Tor network → Waku bootstrap peers
+ *       │     └─ Tor network → Logos Messaging bootstrap peers
  *       │
  *       ├─ [Option B] SOCKS5 proxy (Tor daemon running locally)
- *       │     └─ localhost:9050 → Tor → Waku
+ *       │     └─ localhost:9050 → Tor → Logos Messaging
  *       │
  *       ├─ [Option C] i2pd HTTP proxy
- *       │     └─ localhost:4444 → I2P → Waku
+ *       │     └─ localhost:4444 → I2P → Logos Messaging
  *       │
- *       └─ [Option D] No proxy (standard Waku gossip only)
- *             └─ Direct → Waku peers (bootstrap sees IP)
+ *       └─ [Option D] No proxy (standard Logos Messaging gossip only)
+ *             └─ Direct → Logos Messaging peers (bootstrap sees IP)
  *
  * ─── Browser constraints ──────────────────────────────────────────
  *
@@ -31,7 +31,7 @@
  *
  *  1. Tor Browser (best)
  *     The user opens LogosDrop in Tor Browser. All TCP connections
- *     including WebSocket (Waku) go through Tor automatically.
+ *     including WebSocket (Logos Messaging) go through Tor automatically.
  *     No code changes needed. We detect this and inform the user.
  *
  *  2. Meek/Snowflake bridge via companion extension
@@ -44,7 +44,7 @@
  *     for the average source but documented below.
  *
  *  4. LogosDrop companion app (future)
- *     A small Electron/Tauri app that opens Waku connections through
+ *     A small Electron/Tauri app that opens Logos Messaging connections through
  *     a bundled Tor daemon. Removes all browser constraints.
  *
  * ─── What this module does ────────────────────────────────────────
@@ -53,7 +53,7 @@
  *  2. Detects if a local Tor SOCKS5 proxy is reachable (localhost:9050)
  *     via a /torcheck endpoint we provide in the dev server
  *  3. Provides OpSec guidance messages for the UI
- *  4. Exports transport config for Waku node initialisation
+ *  4. Exports transport config for Logos Messaging node initialisation
  *  5. Implements a WebRTC STUN fingerprint check to warn if real IP
  *     might leak via WebRTC even through a proxy
  */
@@ -163,11 +163,11 @@ export async function runOpsecCheck() {
     status:   torResult.likely ? "pass" : "warn",
     severity: torResult.likely ? "none" : "high",
     detail:   torResult.likely
-      ? "Tor Browser detected. Your connection to Waku bootstrap peers is routed through Tor."
-      : "Tor Browser not detected. Your IP may be visible to Waku bootstrap nodes.",
+      ? "Tor Browser detected. Your connection to Logos Messaging bootstrap peers is routed through Tor."
+      : "Tor Browser not detected. Your IP may be visible to Logos Messaging bootstrap nodes.",
     action:   torResult.likely
       ? null
-      : "Use Tor Browser (https://www.torproject.org) to protect your IP from Waku peers.",
+      : "Use Tor Browser (https://www.torproject.org) to protect your IP from Logos Messaging peers.",
   });
 
   // ── WebRTC leak ────────────────────────────────────────────────
@@ -228,7 +228,7 @@ export async function runOpsecCheck() {
     severity: torResult.likely ? "none" : "low",
     detail:   torResult.likely
       ? "Tor's multi-hop routing provides timing attack resistance."
-      : "Your ISP can observe that you connected to Waku bootstrap nodes, even if not the content.",
+      : "Your ISP can observe that you connected to Logos Messaging bootstrap nodes, even if not the content.",
     action:   torResult.likely ? null : "Use Tor Browser to prevent ISP-level traffic analysis.",
   });
 
@@ -240,12 +240,12 @@ export async function runOpsecCheck() {
   return { checks, score, total, overall, torBrowser: torResult, webrtc: webrtcResult };
 }
 
-// ─── Waku transport config ─────────────────────────────────────────
+// ─── Logos Messaging transport config ─────────────────────────────────────────
 
 /**
- * Get the recommended Waku node config based on detected transport.
+ * Get the recommended Logos Messaging node config based on detected transport.
  *
- * When Tor Browser is detected, Waku's WebSocket connections already
+ * When Tor Browser is detected, Logos Messaging's WebSocket connections already
  * go through Tor — no additional config needed.
  *
  * When running as a companion app (future), this would return a

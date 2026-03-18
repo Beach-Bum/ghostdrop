@@ -3,7 +3,7 @@
  *
  * Flow:
  *   Dashboard → Open Inbox → Review Submission → Publish / Reject
- *   Publish: decrypt → verify strip → Codex pin → Nomos anchor → announce
+ *   Publish: decrypt → verify strip → Logos Storage pin → Logos Blockchain anchor → announce
  *   Reject:  send back-channel message to source's ephemeral pubkey
  */
 
@@ -43,7 +43,7 @@ export default function OutletView() {
     setPublishLog((p) => [...p, { msg, color }]);
   }, []);
 
-  // Subscribe to live incoming submissions via Waku Filter
+  // Subscribe to live incoming submissions via Logos Messaging Filter
   const submissionTopic = Topics.submissions(OUTLET.id);
   const { subscribed, messages: liveMessages } = useWakuSubscription(
     submissionTopic,
@@ -67,11 +67,11 @@ export default function OutletView() {
     NomosService.getChainState().then(setChainState);
   }, []);
 
-  // Load inbox — pulls from Waku Store (historical messages)
+  // Load inbox — pulls from Logos Messaging Store (historical messages)
   const loadInbox = async () => {
     setLoadingInbox(true);
     try {
-      // Poll Waku store for past messages on this outlet's submission topic
+      // Poll Logos Messaging store for past messages on this outlet's submission topic
       const stored = await WakuService.pollStore(submissionTopic, Date.now() - 7 * 24 * 3600 * 1000);
 
       // In production: decrypt each payload and parse the envelope header
@@ -121,8 +121,8 @@ export default function OutletView() {
       log("  ✓ Decryption successful", C.accent);
       log("  ✓ Envelope verified: metadata strip attested", C.accent);
 
-      // ── Codex: Upload ────────────────────────────────────────────
-      log("► Pinning document to Codex network...", C.textDim);
+      // ── Logos Storage: Upload ────────────────────────────────────────────
+      log("► Pinning document to Logos Storage network...", C.textDim);
       // TODO: replace mock bytes with real decrypted docBytes from ECIES
       const docBytes = new TextEncoder().encode(`[Document: ${headline}]`);
       let lastPct = -1;
@@ -141,29 +141,29 @@ export default function OutletView() {
       log(`  CID: ${codexResult.cid}`, C.accent);
       log(`  Size: ${(codexResult.size / 1024).toFixed(1)} KB${codexResult.mock ? " ⚠ mock" : ""}`, C.accentDim);
 
-      // ── Codex: Storage Request ────────────────────────────────────
+      // ── Logos Storage: Storage Request ────────────────────────────────────
       log("► Requesting marketplace storage (1 year, 5 nodes)...", C.textDim);
       const storageReq = await requestStorage(codexResult.cid, {
         duration: 365 * 24 * 3600, nodes: 5, tolerance: 2,
       });
       log(`  Purchase: ${storageReq.purchaseId.slice(0, 24)}...${storageReq.mock ? " ⚠ mock" : ""}`, C.accentDim);
 
-      // ── Hash document for Nomos anchor ───────────────────────────
+      // ── Hash document for Logos Blockchain anchor ───────────────────────────
       log("► Computing document hash (SHA-256)...", C.textDim);
       const hashDigest = await crypto.subtle.digest("SHA-256", docBytes);
       const docHash = `sha256:${Array.from(new Uint8Array(hashDigest)).map(b => b.toString(16).padStart(2,"0")).join("")}`;
       log(`  ${docHash.slice(0, 42)}...`, C.accent);
 
-      // ── Nomos: Anchor ─────────────────────────────────────────────
-      log("► Anchoring to Nomos chain...", C.textDim);
+      // ── Logos Blockchain: Anchor ─────────────────────────────────────────────
+      log("► Anchoring to Logos Blockchain chain...", C.textDim);
       const nomosResult = await NomosService.anchorDocument({
         docHash, outletId: OUTLET.id, cid: codexResult.cid, headline,
       });
       log(`  tx: ${nomosResult.txHash.slice(0, 42)}...`, C.accent);
       log(`  block: ${nomosResult.block}`, C.accentDim);
 
-      // ── Waku: Announce ────────────────────────────────────────────
-      log("► Broadcasting publication via Waku...", C.textDim);
+      // ── Logos Messaging: Announce ────────────────────────────────────────────
+      log("► Broadcasting publication via Logos Messaging...", C.textDim);
       await WakuService.announcePublication(OUTLET.id, {
         headline, cid: codexResult.cid, txHash: nomosResult.txHash,
         block: nomosResult.block, hash: docHash, ts: Date.now(), outletId: OUTLET.id,
@@ -214,11 +214,11 @@ export default function OutletView() {
         <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
           {[
             ["Outlet", OUTLET.name],
-            ["Nomos Address", OUTLET.address],
-            ["Waku Submission Topic", Topics.submissions(OUTLET.id)],
+            ["Logos Blockchain Address", OUTLET.address],
+            ["Logos Messaging Submission Topic", Topics.submissions(OUTLET.id)],
             ["Staked Bond", OUTLET.stake],
             ["Publications", OUTLET.docs.toString()],
-            ["Nomos Block", chainState ? `#${chainState.blockHeight.toLocaleString()}` : "Loading..."],
+            ["Logos Blockchain Block", chainState ? `#${chainState.blockHeight.toLocaleString()}` : "Loading..."],
           ].map(([label, value]) => (
             <div key={label} style={{ display: "flex", justifyContent: "space-between", fontFamily: C.mono, fontSize: 11, borderBottom: `1px solid ${C.border}`, paddingBottom: 8, gap: 16 }}>
               <span style={{ color: C.textDim, flexShrink: 0 }}>{label}</span>
@@ -229,7 +229,7 @@ export default function OutletView() {
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, fontFamily: C.mono, fontSize: 11 }}>
             <span className="ld-pulse" style={{ width: 6, height: 6, borderRadius: "50%", background: subscribed ? C.accent : C.amber, display: "inline-block" }} />
-            <span style={{ color: C.textDim }}>Waku filter: {subscribed ? "subscribed to submission topic" : "connecting..."}</span>
+            <span style={{ color: C.textDim }}>Logos Messaging filter: {subscribed ? "subscribed to submission topic" : "connecting..."}</span>
           </div>
           {liveMessages.length > 0 && (
             <div style={{ fontFamily: C.mono, fontSize: 10, color: C.accent }}>
@@ -313,7 +313,7 @@ export default function OutletView() {
               </button>
             </div>
             <button className="ld-btn ld-btn-primary" disabled={publishing || !headline.trim()} onClick={runPublish}>
-              {publishing ? <span style={{ display: "flex", alignItems: "center", gap: 8 }}>Publishing <Spinner /></span> : "Publish → Codex + Nomos"}
+              {publishing ? <span style={{ display: "flex", alignItems: "center", gap: 8 }}>Publishing <Spinner /></span> : "Publish → Logos Storage + Logos Blockchain"}
             </button>
           </div>
         </div>
@@ -327,20 +327,20 @@ export default function OutletView() {
     <div className="ld-anim">
       <SectionLabel>Publication Record</SectionLabel>
       <div style={{ padding: "12px", background: C.accentFaint, border: `1px solid ${C.accentDim}`, fontFamily: C.mono, fontSize: 11, color: C.accent, marginBottom: 20 }}>
-        ✓ Document is live — pinned to Codex, anchored on Nomos, announced via Waku. Tamper-evident and uncensorable.
+        ✓ Document is live — pinned to Logos Storage, anchored on Logos Blockchain, announced via Logos Messaging. Tamper-evident and uncensorable.
       </div>
       <Panel>
         <div style={{ fontFamily: C.mono, fontSize: 13, color: C.text, marginBottom: 16, lineHeight: 1.5 }}>{publishedRecord.headline}</div>
         <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
-          <HashDisplay value={publishedRecord.cid} label="Codex CID" />
+          <HashDisplay value={publishedRecord.cid} label="Logos Storage CID" />
           <HashDisplay value={publishedRecord.hash} label="Document Hash (SHA-256)" color={C.textDim} />
-          <HashDisplay value={publishedRecord.txHash} label="Nomos Anchor Transaction" />
+          <HashDisplay value={publishedRecord.txHash} label="Logos Blockchain Anchor Transaction" />
           <div style={{ display: "flex", justifyContent: "space-between", fontFamily: C.mono, fontSize: 11, padding: "8px 12px", background: C.bg, border: `1px solid ${C.border}` }}>
-            <span style={{ color: C.textDim }}>Nomos Block</span>
+            <span style={{ color: C.textDim }}>Logos Blockchain Block</span>
             <span style={{ color: C.accent }}>#{publishedRecord.block.toLocaleString()}</span>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", fontFamily: C.mono, fontSize: 11, padding: "8px 12px", background: C.bg, border: `1px solid ${C.border}` }}>
-            <span style={{ color: C.textDim }}>Codex Storage Request</span>
+            <span style={{ color: C.textDim }}>Logos Storage Storage Request</span>
             <span style={{ color: C.accentDim }}>{publishedRecord.storageReq.requestId.slice(0, 20)}...</span>
           </div>
         </div>
@@ -355,7 +355,7 @@ export default function OutletView() {
     <div className="ld-anim">
       <Panel>
         <div style={{ fontFamily: C.mono, fontSize: 11, color: C.textDim, marginBottom: 12 }}>
-          ✓ Rejection sent to source via Waku back-channel topic keyed to their ephemeral pubkey. Source will receive it on next poll.
+          ✓ Rejection sent to source via Logos Messaging back-channel topic keyed to their ephemeral pubkey. Source will receive it on next poll.
         </div>
         <div style={{ fontFamily: C.mono, fontSize: 10, color: C.textFaint, marginBottom: 16 }}>
           Reason: <span style={{ color: C.textDim }}>{rejectReason}</span>

@@ -4,8 +4,8 @@
  * Steps:
  *   1. Upload   — drag-and-drop file or demo mode
  *   2. Strip    — metadata removal + attestation (real, Layer 4)
- *   3. Outlet   — select from Nomos registry
- *   4. Submit   — ECIES encrypt + Waku LightPush
+ *   3. Outlet   — select from Logos Blockchain registry
+ *   4. Submit   — ECIES encrypt + Logos Messaging LightPush
  *   5. Receipt  — save claim key, poll back-channel
  */
 
@@ -164,8 +164,8 @@ export default function SourceView() {
       log("► ECIES encryption complete (secp256k1 + AES-256-GCM)...", C.textDim);
       log(`  payload: ${payload.length} bytes (${(payload.length / 1024).toFixed(1)} KB)`, C.accentDim);
 
-      // 3. Connect to Waku
-      log("► Connecting to Waku p2p network...", C.textDim);
+      // 3. Connect to Logos Messaging
+      log("► Connecting to Logos Messaging p2p network...", C.textDim);
       await WakuService.connect();
       const diag = WakuService.diagnostics();
       log(`  peers: ${diag.peers} · node: ${diag.nodeId}`, C.accent);
@@ -175,7 +175,7 @@ export default function SourceView() {
       const result = await WakuService.send(selectedOutlet.topic, payload);
       log(`  msgId: ${result.msgId}`, C.accent);
       log(`  timestamp: ${new Date(result.ts).toISOString()}`, C.accentDim);
-      log("► Transmission complete. Message gossiping through Waku network.", C.text);
+      log("► Transmission complete. Message gossiping through Logos Messaging network.", C.text);
 
       // 5. Build receipt
       setReceipt({
@@ -194,7 +194,7 @@ export default function SourceView() {
 
     } catch (err) {
       log(`✗ Error: ${err.message}`, C.red);
-      log("  Check Waku connection and try again.", C.textDim);
+      log("  Check Logos Messaging connection and try again.", C.textDim);
     } finally {
       setSubmitting(false);
     }
@@ -452,7 +452,7 @@ export default function SourceView() {
         <div>
           <SectionLabel>Select Publication Outlet</SectionLabel>
           <div style={{ marginBottom: 14, fontFamily: C.mono, fontSize: 11, color: C.textDim }}>
-            Outlets are registered on Nomos. Stake indicates their credibility bond — slashable if fabricated documents are published.
+            Outlets are registered on Logos Blockchain. Stake indicates their credibility bond — slashable if fabricated documents are published.
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
             {outlets.map((o) => (
@@ -500,12 +500,12 @@ export default function SourceView() {
                   ? `${(strippedBytes.length / 1024).toFixed(1)} KB (stripped from ${(file?.size / 1024).toFixed(1)} KB)`
                   : `${(file?.size / 1024).toFixed(1)} KB`],
                 ["Outlet",      selectedOutlet?.name],
-                ["Waku Topic",  selectedOutlet?.topic],
+                ["Logos Messaging Topic",  selectedOutlet?.topic],
                 ["Metadata",    stripReport
                   ? `✓ ${stripReport.fieldsRemoved.length} fields stripped via ${stripReport.technique}`
                   : "⚠ Not stripped — proceed with caution"],
                 ["Encryption",  "ECIES — secp256k1 + AES-256-GCM"],
-                ["IP exposed",  "✓ None — Waku gossip protocol"],
+                ["IP exposed",  "✓ None — Logos Messaging gossip protocol"],
                 ["Identity",    "✓ None — ephemeral key only"],
                 ["OpSec",       opsec
                   ? `${opsec.overall.toUpperCase()} (${opsec.score}/${opsec.total})`
@@ -553,7 +553,7 @@ export default function SourceView() {
               <button className="ld-btn ld-btn-primary" disabled={submitting} onClick={runSubmit}>
                 {submitting
                   ? <span style={{ display: "flex", alignItems: "center", gap: 8 }}>Transmitting <Spinner /></span>
-                  : "Encrypt & Submit via Waku"}
+                  : "Encrypt & Submit via Logos Messaging"}
               </button>
             </div>
           </Panel>
@@ -565,7 +565,7 @@ export default function SourceView() {
         <div className="ld-anim">
           <SectionLabel>Submission Receipt</SectionLabel>
           <div style={{ padding: "12px", background: C.accentFaint, border: `1px solid ${C.accentDim}`, fontFamily: C.mono, fontSize: 11, color: C.accent, marginBottom: 20 }}>
-            ✓ Delivered to <strong>{receipt.outletName}</strong> via Waku LightPush
+            ✓ Delivered to <strong>{receipt.outletName}</strong> via Logos Messaging LightPush
             {receipt.stripped && " · Metadata stripped"}
             {" · "}msgId: {receipt.msgId.slice(0, 20)}…
           </div>
@@ -612,7 +612,7 @@ export default function SourceView() {
           <Panel style={{ marginBottom: 14 }}>
             <SectionLabel>Back-Channel</SectionLabel>
             <div style={{ fontFamily: C.mono, fontSize: 11, color: C.textDim, marginBottom: 12 }}>
-              Poll the Waku Store for outlet responses. Your client only listens — no call-home, no persistent connection.
+              Poll the Logos Messaging Store for outlet responses. Your client only listens — no call-home, no persistent connection.
             </div>
 
             {backMessages.length > 0 ? (
@@ -628,7 +628,7 @@ export default function SourceView() {
               <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
                 <button className="ld-btn ld-btn-ghost" disabled={checkingBack} onClick={pollBackChannel}>
                   {checkingBack
-                    ? <span style={{ display: "flex", alignItems: "center", gap: 8 }}>Querying Waku Store <Spinner /></span>
+                    ? <span style={{ display: "flex", alignItems: "center", gap: 8 }}>Querying Logos Messaging Store <Spinner /></span>
                     : "Poll Back-Channel"}
                 </button>
                 <span style={{ fontFamily: C.mono, fontSize: 10, color: C.textFaint }}>No messages yet</span>

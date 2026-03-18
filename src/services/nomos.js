@@ -1,8 +1,8 @@
 /**
- * Nomos Settlement Service — Real REST API Integration
+ * Logos Blockchain Settlement Service — Real REST API Integration
  *
- * Nomos is the consensus + settlement layer of the Logos stack.
- * This module talks directly to a local Nomos node's REST API.
+ * Logos Blockchain is the consensus + settlement layer of the Logos stack.
+ * This module talks directly to a local Logos Blockchain node's REST API.
  *
  * Node default port:  3001
  * Override via:       VITE_NOMOS_RPC_URL
@@ -57,7 +57,7 @@ async function get(path, signal) {
     cache: "no-cache",
     signal,
   });
-  if (!res.ok) throw new Error(`Nomos GET ${path}: HTTP ${res.status}`);
+  if (!res.ok) throw new Error(`Logos Blockchain GET ${path}: HTTP ${res.status}`);
   return res.json();
 }
 
@@ -69,13 +69,13 @@ async function post(path, body) {
   });
   if (!res.ok) {
     const txt = await res.text().catch(() => "");
-    throw new Error(`Nomos POST ${path}: HTTP ${res.status} — ${txt}`);
+    throw new Error(`Logos Blockchain POST ${path}: HTTP ${res.status} — ${txt}`);
   }
   return res.json();
 }
 
 /**
- * NDJSON streaming helper (replicates Nomos explorer's utils.js).
+ * NDJSON streaming helper (replicates Logos Blockchain explorer's utils.js).
  * Returns an AbortController — call .abort() to cancel the stream.
  *
  * @param {string}   path      API path (appended to NODE_URL)
@@ -269,7 +269,7 @@ export async function getOutlets() {
         .map(_decodeOutletReg)
         .filter(Boolean);
       if (outlets.length > 0) return outlets;
-    } catch (err) { console.warn("[Nomos] outlet scan:", err.message); }
+    } catch (err) { console.warn("[Logos Blockchain] outlet scan:", err.message); }
   }
   await _delay(400);
   return _OUTLETS;
@@ -278,7 +278,7 @@ export async function getOutlets() {
 // ─── Document anchoring ───────────────────────────────────────────
 
 /**
- * Anchor a document to Nomos as a mantle_tx inscription.
+ * Anchor a document to Logos Blockchain as a mantle_tx inscription.
  *
  * Inscription payload (JSON → UTF-8 bytes):
  *   { v, type, docHash, cid, outletId, headline, ts }
@@ -310,9 +310,9 @@ export async function anchorDocument({ docHash, outletId, cid, headline }) {
   };
 
   if (h.online) {
-    console.info("[Nomos] anchorDocument — tx ready, wallet API pending");
-    console.info("[Nomos] channel:", LOGOS_DROP_CHANNEL);
-    console.info("[Nomos] inscription:", inscription.length, "bytes");
+    console.info("[Logos Blockchain] anchorDocument — tx ready, wallet API pending");
+    console.info("[Logos Blockchain] channel:", LOGOS_DROP_CHANNEL);
+    console.info("[Logos Blockchain] inscription:", inscription.length, "bytes");
     // Uncomment when wallet API is stable:
     // const result = await post("/api/v1/transactions", { operations: [mantleOp] });
     // return { txHash: result.hash, block: result.block_height, anchorId: result.id, ts: Date.now(), mock: false };
@@ -346,7 +346,7 @@ export async function verifyAnchor(txHash, expectedDocHash) {
         const p = JSON.parse(new TextDecoder().decode(Uint8Array.from(op.payload.inscription)));
         return { verified: p.docHash === expectedDocHash, block: null, ts: p.ts, outletId: p.outletId, decodedPayload: p, mock: false };
       }
-    } catch (err) { console.warn("[Nomos] verifyAnchor:", err.message); }
+    } catch (err) { console.warn("[Logos Blockchain] verifyAnchor:", err.message); }
   }
 
   await _delay(1800);
@@ -376,8 +376,8 @@ export async function lockTip({ anchorId, ephPubHex, xmrAmount }) {
   };
 
   if (h.online) {
-    console.info("[Nomos] lockTip — ledger tx ready, wallet API pending");
-    console.info("[Nomos] output:", outputValue, "base units →", ephPubHex.slice(0,20) + "...");
+    console.info("[Logos Blockchain] lockTip — ledger tx ready, wallet API pending");
+    console.info("[Logos Blockchain] output:", outputValue, "base units →", ephPubHex.slice(0,20) + "...");
   }
 
   await _delay(1100);
@@ -410,7 +410,7 @@ export async function getTipPool(anchorId) {
           mock:      false,
         };
       }
-    } catch (err) { console.warn("[Nomos] getTipPool:", err.message); }
+    } catch (err) { console.warn("[Logos Blockchain] getTipPool:", err.message); }
   }
   await _delay(400);
   return { total: `${(Math.random()*2).toFixed(2)} XMR`, claimable: true, escrows: Math.floor(Math.random()*8)+1, mock: true };
@@ -419,7 +419,7 @@ export async function getTipPool(anchorId) {
 // ─── Publications feed ────────────────────────────────────────────
 
 /**
- * Fetch published document anchors from the Nomos chain.
+ * Fetch published document anchors from the Logos Blockchain chain.
  * Scans LOGOS_DROP_CHANNEL opcode=0 txs and decodes their inscriptions.
  */
 export async function getPublications({ outletId, limit = 20 } = {}) {
@@ -433,7 +433,7 @@ export async function getPublications({ outletId, limit = 20 } = {}) {
         .filter(p => p && (!outletId || p.outletId === outletId))
         .slice(0, limit);
       if (pubs.length > 0) return pubs;
-    } catch (err) { console.warn("[Nomos] getPublications:", err.message); }
+    } catch (err) { console.warn("[Logos Blockchain] getPublications:", err.message); }
   }
   await _delay(700);
   return _PUBS;

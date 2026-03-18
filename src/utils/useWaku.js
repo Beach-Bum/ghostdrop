@@ -1,5 +1,5 @@
 /**
- * useWaku — React hook for Waku node lifecycle management
+ * useWaku — React hook for Logos Messaging node lifecycle management
  *
  * Handles:
  * - Auto-connect on mount
@@ -16,7 +16,7 @@ export function useWaku({ autoConnect = true } = {}) {
   const [diagnostics, setDiagnostics] = useState(null);
   const [error, setError] = useState(null);
 
-  // Track status changes from Waku service
+  // Track status changes from Logos Messaging service
   useEffect(() => {
     const unsub = WakuService.onStatusChange((s) => {
       setStatus(s);
@@ -63,7 +63,7 @@ export function useWaku({ autoConnect = true } = {}) {
 }
 
 /**
- * useWakuSubscription — subscribe to a Waku topic with auto-cleanup
+ * useWakuSubscription — subscribe to a Logos Messaging topic with auto-cleanup
  */
 export function useWakuSubscription(topic, onMessage, { enabled = true } = {}) {
   const [subscribed, setSubscribed] = useState(false);

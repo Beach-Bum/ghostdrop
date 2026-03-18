@@ -4,7 +4,7 @@
 
 No server to seize. No nonprofit to pressure. No identity to leak.
 
-> SecureDrop rebuilt from first principles — Waku for anonymous messaging, Codex for permanent storage, Nomos for tamper-evident settlement.
+> SecureDrop rebuilt from first principles — Logos Messaging for anonymous messaging, Logos Storage for permanent storage, Logos Blockchain for tamper-evident settlement.
 
 ---
 
@@ -13,13 +13,13 @@ No server to seize. No nonprofit to pressure. No identity to leak.
 | Feature | Description |
 |---|---|
 | 🔒 **ECIES Encryption** | Every document is encrypted to the outlet's secp256k1 key before it leaves your browser |
-| 👻 **Waku Gossip** | Submissions route through a p2p gossip network — your IP is never sent directly to the outlet |
-| 🗄️ **Codex Storage** | Published documents are content-addressed and replicated across decentralised storage nodes |
-| ⛓️ **Nomos Anchoring** | Document hashes are permanently anchored on-chain as tamper-evident proofs of publication |
+| 👻 **Logos Messaging Gossip** | Submissions route through a p2p gossip network — your IP is never sent directly to the outlet |
+| 🗄️ **Logos Storage Storage** | Published documents are content-addressed and replicated across decentralised storage nodes |
+| ⛓️ **Logos Blockchain Anchoring** | Document hashes are permanently anchored on-chain as tamper-evident proofs of publication |
 | 🧹 **Metadata Stripping** | PDF, JPEG, DOCX and more are automatically stripped of author, GPS, timestamps and other identifying fields |
 | 🕵️ **OpSec Advisor** | Built-in Tor Browser detection, WebRTC IP leak check, and 6-point operational security assessment |
-| 💰 **Anonymous Tips** | Readers can lock XMR tips in Nomos escrow — claimable only by the source's 12-word ephemeral key |
-| 📡 **Back-Channel** | Sources poll the Waku Store for outlet replies — no persistent connection, no call-home |
+| 💰 **Anonymous Tips** | Readers can lock XMR tips in Logos Blockchain escrow — claimable only by the source's 12-word ephemeral key |
+| 📡 **Back-Channel** | Sources poll the Logos Messaging Store for outlet replies — no persistent connection, no call-home |
 
 ---
 
@@ -36,16 +36,16 @@ SOURCE BROWSER                OUTLET                        READER
       │     └─ DOCX → ZIP patch   │                              │
       │  4. ECIES encrypt         │                              │
       │     secp256k1 + AES-GCM   │                              │
-      │  5. Waku LightPush ──────►│                              │
+      │  5. Logos Messaging LightPush ──────►│                              │
       │  6. Save 12-word key      │  6. Filter sub receives      │
       │                           │  7. Decrypt + review         │
-      │                           │  8. Upload → Codex           │
-      │                           │  9. Anchor → Nomos           │
+      │                           │  8. Upload → Logos Storage           │
+      │                           │  9. Anchor → Logos Blockchain           │
       │                           │     mantle_tx inscription    │
-      │                           │ 10. Announce → Waku ────────►│
-      │  ◄────────────────────────│                         11. Fetch Codex
-      │  11. Poll back-channel    │                         12. Verify Nomos
-      │      (Waku Store)         │                         13. Tip → escrow
+      │                           │ 10. Announce → Logos Messaging ────────►│
+      │  ◄────────────────────────│                         11. Fetch Logos Storage
+      │  11. Poll back-channel    │                         12. Verify Logos Blockchain
+      │      (Logos Messaging Store)         │                         13. Tip → escrow
 ```
 
 ### Crypto primitives
@@ -59,7 +59,7 @@ Wire format:        [ephPub(33)] [nonce(12)] [ciphertext+tag]
 Claim key:          12-word mnemonic from ephemeral private key bytes
 ```
 
-### Nomos document anchor
+### Logos Blockchain document anchor
 
 ```
 channel_id  = sha256("logos-drop-v1")   ← fixed, deterministic
@@ -87,7 +87,7 @@ npm run dev
 # → http://localhost:3000
 ```
 
-Waku connects to the public fleet automatically. Codex and Nomos run in **mock mode** until you connect local nodes (see below).
+Logos Messaging connects to the public fleet automatically. Logos Storage and Logos Blockchain run in **mock mode** until you connect local nodes (see below).
 
 ### 3. Build for production
 
@@ -102,10 +102,10 @@ npm run build
 
 The app degrades gracefully — each layer works independently in mock mode.
 
-### Waku (messaging) — Live by default
-Connects automatically to the Waku public fleet on load. No config needed.
+### Logos Messaging (messaging) — Live by default
+Connects automatically to the Logos Messaging public fleet on load. No config needed.
 
-### Codex (storage)
+### Logos Storage (storage)
 
 ```bash
 # Option A: Docker (easiest)
@@ -116,9 +116,9 @@ docker run -p 8080:8080 codexstorage/nim-codex
 ./codex --api-port=8080
 ```
 
-Once running, Codex status in the sidebar turns green automatically.
+Once running, Logos Storage status in the sidebar turns green automatically.
 
-### Nomos (settlement)
+### Logos Blockchain (settlement)
 
 ```bash
 # Clone the node
@@ -132,7 +132,7 @@ cd testnet && docker compose up
 cargo build -p nomos-node --release
 ```
 
-Once running, Nomos status turns green and document anchors are submitted as real on-chain transactions.
+Once running, Logos Blockchain status turns green and document anchors are submitted as real on-chain transactions.
 
 ---
 
@@ -146,9 +146,9 @@ cp .env.example .env.local
 
 | Variable | Default | Description |
 |---|---|---|
-| `VITE_CODEX_NODE_URL` | `http://localhost:8080` | Codex node REST API |
-| `VITE_NOMOS_RPC_URL` | `http://localhost:3001` | Nomos node RPC |
-| `VITE_WAKU_BOOTSTRAP_PEERS` | Waku public fleet | Optional custom bootstrap peers |
+| `VITE_CODEX_NODE_URL` | `http://localhost:8080` | Logos Storage node REST API |
+| `VITE_NOMOS_RPC_URL` | `http://localhost:3001` | Logos Blockchain node RPC |
+| `VITE_WAKU_BOOTSTRAP_PEERS` | Logos Messaging public fleet | Optional custom bootstrap peers |
 
 ---
 
@@ -167,10 +167,10 @@ ghostdrop/
 │   │   ├── strip.js             # Metadata stripping: PDF, image, DOCX/XLSX
 │   │   └── transport.js         # Tor detection, WebRTC leak check, OpSec
 │   ├── components/
-│   │   ├── CodexStatus.jsx      # Live Codex node health panel
-│   │   └── NomosStatus.jsx      # Live Nomos chain panel + block ticker
+│   │   ├── CodexStatus.jsx      # Live Logos Storage node health panel
+│   │   └── NomosStatus.jsx      # Live Logos Blockchain chain panel + block ticker
 │   └── utils/
-│       └── useWaku.js           # React hooks for Waku node lifecycle
+│       └── useWaku.js           # React hooks for Logos Messaging node lifecycle
 ├── .env.example                 # Environment variable template
 ├── vite.config.js               # Vite config with CORS proxies
 └── README.md
@@ -195,7 +195,7 @@ Every strip operation produces a **StripReport** containing SHA-256 hashes of th
 
 The built-in OpSec advisor checks:
 
-1. **Tor Browser** — Tor Browser routes all connections (including Waku WebSockets) through Tor, hiding your IP from bootstrap peers. Strongly recommended.
+1. **Tor Browser** — Tor Browser routes all connections (including Logos Messaging WebSockets) through Tor, hiding your IP from bootstrap peers. Strongly recommended.
 2. **WebRTC leak** — Detects real IP leakage through STUN even behind a VPN.
 3. **Browser fingerprinting** — Warns if your browser has a distinctive plugin/canvas fingerprint.
 4. **Device security** — Reminder not to submit from managed/work devices.
@@ -214,11 +214,11 @@ The built-in OpSec advisor checks:
 
 ## 🗺️ Roadmap
 
-- [ ] **Wallet tx signing** — Submit real Nomos transactions once wallet API stabilises
+- [ ] **Wallet tx signing** — Submit real Logos Blockchain transactions once wallet API stabilises
 - [ ] **Outlet keystore** — Encrypted local keystore for outlet private key management
 - [ ] **Companion app** — Electron/Tauri app with bundled Tor daemon (removes browser limitations)
-- [ ] **Codex incentives** — Paid marketplace storage for long-term replication guarantees
-- [ ] **Onion bootstrap peers** — Dedicated `.onion` Waku nodes for Tor-native routing
+- [ ] **Logos Storage incentives** — Paid marketplace storage for long-term replication guarantees
+- [ ] **Onion bootstrap peers** — Dedicated `.onion` Logos Messaging nodes for Tor-native routing
 - [ ] **ZK tip claims** — Zero-knowledge proof of ephemeral key for anonymous tip withdrawal
 - [ ] **Multi-outlet broadcast** — Submit to multiple outlets simultaneously
 
@@ -230,7 +230,7 @@ The built-in OpSec advisor checks:
 |---|---|---|
 | Messaging | [@waku/sdk](https://www.npmjs.com/package/@waku/sdk) | 0.0.27 |
 | Storage | [@codex-storage/sdk-js](https://www.npmjs.com/package/@codex-storage/sdk-js) | 0.1.3 |
-| Settlement | [Nomos REST API](https://github.com/logos-co/nomos-node) | devnet |
+| Settlement | [Logos Blockchain REST API](https://github.com/logos-co/nomos-node) | devnet |
 | Encryption | [@noble/curves](https://github.com/paulmillr/noble-curves) + [@noble/ciphers](https://github.com/paulmillr/noble-ciphers) | latest |
 | PDF stripping | [pdf-lib](https://github.com/Hopding/pdf-lib) | 1.17.1 |
 | EXIF scanning | [exifr](https://github.com/MikeKovarik/exifr) | 7.1.3 |
@@ -250,4 +250,4 @@ MIT — see [LICENSE](LICENSE)
 
 Pull requests welcome. Please open an issue first for significant changes.
 
-For security issues, please contact via [Waku back-channel](https://waku.org) rather than public GitHub issues.
+For security issues, please contact via [Logos Messaging back-channel](https://waku.org) rather than public GitHub issues.

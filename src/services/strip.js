@@ -31,7 +31,7 @@
  * ─── Attestation ─────────────────────────────────────────────────
  *  Returns a StripReport attached to the submission envelope:
  *  { technique, fieldsRemoved[], docHash, strippedHash, ts }
- *  The Nomos anchor includes this report so verifiers can confirm
+ *  The Logos Blockchain anchor includes this report so verifiers can confirm
  *  stripping was performed.
  *
  * ─── Steganography note ──────────────────────────────────────────

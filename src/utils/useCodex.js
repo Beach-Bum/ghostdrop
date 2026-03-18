@@ -1,5 +1,5 @@
 /**
- * useCodex — React hook for Codex node status
+ * useCodex — React hook for Logos Storage node status
  * Polls the local node every 30s and exposes health + space info.
  */
 
