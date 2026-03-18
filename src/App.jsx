@@ -368,7 +368,7 @@ function SourceView({ onStepChange }) {
             )}
           </div>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:16 }}>
-            <button className="btn btn-ghost btn-sm" onClick={()=>handleFile(new File([new TextEncoder().encode("DEMO CONFIDENTIAL MEMO")], "demo_memo.txt",{type:"text/plain"}))}>Load demo file</button>
+            <button className="btn btn-ghost btn-sm" onClick={()=>handleFile(new File(["DEMO CONFIDENTIAL MEMO — Internal use only. This document contains sensitive operational data that should not be distributed outside the organization. Generated for GhostDrop demonstration purposes."], "demo_memo.txt",{type:"text/plain"}))}>Load demo file</button>
             {file && <button className="btn btn-primary" onClick={()=>setStep(1)}>Continue to Strip →</button>}
           </div>
         </div>
