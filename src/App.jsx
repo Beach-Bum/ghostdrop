@@ -24,8 +24,8 @@ const injectStyles = () => {
       --accent-hover: #3d84ef;
       --accent-soft: rgba(77,148,255,0.14);
       --text: #f1f3f5;
-      --text-2: #b0b3b8;
-      --text-3: #8b8d93;
+      --text-2: #c1c4c9;
+      --text-3: #9a9da3;
       --green: #51cf66;
       --green-soft: rgba(81,207,102,0.12);
       --amber: #fcc419;
