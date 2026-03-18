@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GhostDrop — Interactive Demo</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #1a1b1e; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; padding: 32px 16px; }
+  :root {
+    --sidebar: #1e1f24;
+    --bg: #25262b;
+    --surface: #2c2e33;
+    --surface2: #373a40;
+    --border: #373a40;
+    --accent: #0061ff;
+    --accent-soft: rgba(0,97,255,0.15);
+    --text: #f1f3f5;
+    --text2: #909296;
+    --text3: #5c5f66;
+    --green: #2f9e44;
+    --green-soft: rgba(47,158,68,0.15);
+    --amber: #f59f00;
+    --amber-soft: rgba(245,159,0,0.15);
+    --red: #e03131;
+    --red-soft: rgba(224,49,49,0.12);
+    --r: 8px; --rs: 5px;
+  }
+  .wrapper { width: 100%; max-width: 960px; }
+  .header { text-align: center; margin-bottom: 28px; }
+  .header h1 { font-size: 28px; font-weight: 700; color: #f1f3f5; letter-spacing: -0.02em; margin-bottom: 8px; }
+  .header p { font-size: 14px; color: #909296; }
+  .header .badge-row { display: flex; justify-content: center; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  .header .badge { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+  .badge-blue { background: rgba(0,97,255,0.15); color: #4dabf7; }
+  .badge-green { background: rgba(47,158,68,0.15); color: #69db7c; }
+  .badge-amber { background: rgba(245,159,0,0.15); color: #fcc419; }
+  .app { display: flex; height: 600px; overflow: hidden; border-radius: 12px; border: 1px solid #373a40; background: #25262b; }
+  .sidebar { width: 230px; background: #1e1f24; display: flex; flex-direction: column; border-right: 1px solid #373a40; flex-shrink: 0; }
+  .logo-area { padding: 18px 16px 14px; border-bottom: 1px solid #373a40; }
+  .logo-row { display: flex; align-items: center; gap: 10px; }
+  .logo-icon { font-size: 22px; }
+  .logo-name { font-size: 15px; font-weight: 700; color: #f1f3f5; }
+  .logo-sub { font-size: 10px; color: #5c5f66; margin-top: 2px; }
+  .nav-section { padding: 10px 8px; flex: 1; }
+  .nav-label { font-size: 9px; letter-spacing: 1.4px; color: #5c5f66; padding: 4px 8px 8px; text-transform: uppercase; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 6px; cursor: pointer; color: #909296; transition: all 0.12s; margin-bottom: 2px; }
+  .nav-item:hover { background: #2c2e33; color: #f1f3f5; }
+  .nav-item.active { background: rgba(0,97,255,0.15); color: #0061ff; }
+  .nav-icon { font-size: 15px; width: 18px; text-align: center; }
+  .nav-text .main { font-size: 13px; font-weight: 500; }
+  .nav-text .sub { font-size: 10px; color: #5c5f66; margin-top: 2px; }
+  .nav-item.active .sub { color: rgba(0,97,255,0.5); }
+  .status-footer { padding: 12px 16px; border-top: 1px solid #373a40; }
+  .status-lbl { font-size: 9px; letter-spacing: 1.2px; color: #5c5f66; text-transform: uppercase; margin-bottom: 10px; }
+  .status-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 11px; color: #909296; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .dot-green { background: #2f9e44; }
+  .dot-amber { background: #f59f00; animation: pulse 1.8s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .status-val { margin-left: auto; font-size: 10px; color: #5c5f66; }
+  .main-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .topbar { height: 50px; background: #1e1f24; border-bottom: 1px solid #373a40; display: flex; align-items: center; padding: 0 22px; justify-content: space-between; flex-shrink: 0; }
+  .topbar-title { font-size: 14px; font-weight: 600; color: #f1f3f5; }
+  .topbar-dots { display: flex; gap: 16px; align-items: center; }
+  .topbar-dot-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #5c5f66; }
+  .content { flex: 1; overflow-y: auto; padding: 22px; }
+  .content::-webkit-scrollbar { width: 4px; }
+  .content::-webkit-scrollbar-track { background: transparent; }
+  .content::-webkit-scrollbar-thumb { background: #373a40; border-radius: 2px; }
+  .section-title { font-size: 17px; font-weight: 600; color: #f1f3f5; margin-bottom: 4px; }
+  .section-sub { font-size: 12px; color: #909296; margin-bottom: 20px; line-height: 1.5; }
+  .step-bar { display: flex; gap: 5px; margin-bottom: 22px; flex-wrap: wrap; }
+  .step-pill { display: flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+  .step-done { background: rgba(47,158,68,0.15); color: #2f9e44; }
+  .step-active { background: rgba(0,97,255,0.15); color: #0061ff; }
+  .step-pending { color: #5c5f66; border: 1px solid #373a40; }
+  .drop-zone { border: 2px dashed #373a40; border-radius: 10px; padding: 40px 20px; text-align: center; cursor: pointer; transition: all 0.15s; margin-bottom: 14px; }
+  .drop-zone:hover, .drop-zone.has-file { border-color: #0061ff; background: rgba(0,97,255,0.08); }
+  .drop-icon { font-size: 32px; margin-bottom: 10px; opacity: 0.5; }
+  .drop-text { font-size: 14px; font-weight: 600; color: #909296; }
+  .drop-sub { font-size: 11px; color: #5c5f66; margin-top: 5px; }
+  .btn { cursor: pointer; border: none; border-radius: 6px; font-family: inherit; font-size: 13px; font-weight: 500; padding: 9px 18px; transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-primary { background: #0061ff; color: white; }
+  .btn-primary:hover:not(:disabled) { background: #0052d9; }
+  .btn-ghost { background: transparent; color: #909296; border: 1px solid #373a40; }
+  .btn-ghost:hover:not(:disabled) { background: #373a40; color: #f1f3f5; }
+  .card { background: #2c2e33; border: 1px solid #373a40; border-radius: 10px; padding: 18px; margin-bottom: 12px; }
+  .outlet-card { border: 1.5px solid #373a40; border-radius: 10px; padding: 14px 16px; cursor: pointer; transition: all 0.15s; margin-bottom: 8px; background: #2c2e33; }
+  .outlet-card:hover, .outlet-card.selected { border-color: #0061ff; background: rgba(0,97,255,0.1); }
+  .row-space { display: flex; justify-content: space-between; align-items: center; }
+  .alert { border-radius: 6px; padding: 10px 13px; font-size: 12px; margin-bottom: 10px; line-height: 1.5; }
+  .alert-success { background: rgba(47,158,68,0.15); color: #2f9e44; border: 1px solid rgba(47,158,68,0.25); }
+  .alert-warning { background: rgba(245,159,0,0.15); color: #f59f00; border: 1px solid rgba(245,159,0,0.25); }
+  .field-row { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid #373a40; font-size: 12px; gap: 12px; }
+  .field-label { color: #909296; flex-shrink: 0; }
+  .field-val { color: #f1f3f5; text-align: right; }
+  .field-val-green { color: #2f9e44; text-align: right; }
+  .log-box { background: #0d0e12; border: 1px solid #373a40; border-radius: 6px; padding: 12px 14px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 11px; line-height: 1.9; max-height: 140px; overflow-y: auto; margin-bottom: 12px; }
+  .log-accent { color: #4dabf7; }
+  .log-success { color: #69db7c; }
+  .log-dim { color: #5c5f66; }
+  .pub-card { background: #2c2e33; border: 1px solid #373a40; border-radius: 10px; padding: 16px; margin-bottom: 8px; cursor: pointer; transition: background 0.1s; }
+  .pub-card:hover { background: #373a40; }
+  .pub-headline { font-size: 13px; font-weight: 600; color: #f1f3f5; line-height: 1.4; margin-bottom: 6px; }
+  .pub-summary { font-size: 11px; color: #909296; line-height: 1.6; margin-bottom: 10px; }
+  .badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 500; }
+  .badge-green { background: rgba(47,158,68,0.15); color: #2f9e44; }
+  .badge-blue { background: rgba(0,97,255,0.15); color: #4dabf7; }
+  .mnemonic { background: #373a40; border: 1px solid #f59f00; border-radius: 6px; padding: 16px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px; line-height: 2.4; letter-spacing: 0.03em; color: #f1f3f5; }
+  .hash-box { background: #373a40; border-radius: 6px; padding: 9px 12px; display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .hash-val { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 10px; color: #74c0fc; word-break: break-all; flex: 1; }
+  .copy-btn { font-size: 10px; color: #5c5f66; cursor: pointer; background: none; border: none; font-family: inherit; flex-shrink: 0; padding: 0 4px; }
+  .copy-btn:hover { color: #0061ff; }
+  .hidden { display: none !important; }
+  input[type=text], textarea { background: #2c2e33; border: 1px solid #373a40; border-radius: 6px; color: #f1f3f5; font-family: inherit; font-size: 12px; padding: 9px 12px; width: 100%; outline: none; transition: border-color 0.15s; }
+  input[type=text]:focus, textarea:focus { border-color: #0061ff; }
+  textarea { resize: vertical; min-height: 72px; }
+  .progress-bar { height: 4px; background: #373a40; border-radius: 2px; overflow: hidden; margin-bottom: 10px; }
+  .progress-fill { height: 100%; background: #0061ff; border-radius: 2px; transition: width 0.25s; }
+  .footer { text-align: center; margin-top: 24px; font-size: 12px; color: #5c5f66; }
+  .footer a { color: #4dabf7; text-decoration: none; }
+  .footer a:hover { text-decoration: underline; }
+  @media (max-width: 640px) {
+    .sidebar { display: none; }
+    .app { height: auto; min-height: 560px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <div class="header">
+    <h1>👻 GhostDrop</h1>
+    <p>Decentralised, censorship-resistant whistleblower platform built on the Logos stack</p>
+    <div class="badge-row">
+      <span class="badge badge-blue">Logos Messaging</span>
+      <span class="badge badge-green">Logos Storage</span>
+      <span class="badge badge-amber">Logos Blockchain</span>
+      <span class="badge" style="background:rgba(255,255,255,0.08);color:#909296">ECIES Encryption</span>
+      <span class="badge" style="background:rgba(255,255,255,0.08);color:#909296">Metadata Stripping</span>
+    </div>
+  </div>
+
+  <div class="app">
+    <div class="sidebar">
+      <div class="logo-area">
+        <div class="logo-row">
+          <div class="logo-icon">👻</div>
+          <div>
+            <div class="logo-name">GhostDrop</div>
+            <div class="logo-sub">Decentralised · Private</div>
+          </div>
+        </div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Navigation</div>
+        <div class="nav-item active" onclick="switchView('source',this)">
+          <div class="nav-icon">↑</div>
+          <div class="nav-text"><div class="main">Submit Document</div><div class="sub">Send securely</div></div>
+        </div>
+        <div class="nav-item" onclick="switchView('outlet',this)">
+          <div class="nav-icon">◫</div>
+          <div class="nav-text"><div class="main">Outlet Inbox</div><div class="sub">Receive &amp; publish</div></div>
+        </div>
+        <div class="nav-item" onclick="switchView('reader',this)">
+          <div class="nav-icon">≡</div>
+          <div class="nav-text"><div class="main">Publications</div><div class="sub">Browse &amp; verify</div></div>
+        </div>
+      </div>
+      <div class="status-footer">
+        <div class="status-lbl">Stack Status</div>
+        <div class="status-row"><div class="dot dot-green"></div> Logos Messaging <div class="status-val">live</div></div>
+        <div class="status-row"><div class="dot dot-amber"></div> Logos Storage <div class="status-val">mock</div></div>
+        <div class="status-row"><div class="dot dot-amber"></div> Logos Blockchain <div class="status-val">mock</div></div>
+      </div>
+    </div>
+
+    <div class="main-area">
+      <div class="topbar">
+        <div class="topbar-title" id="topbar-title">Submit Document</div>
+        <div class="topbar-dots">
+          <div class="topbar-dot-item"><div class="dot dot-green"></div> Logos Messaging</div>
+          <div class="topbar-dot-item"><div class="dot dot-amber"></div> Logos Storage</div>
+          <div class="topbar-dot-item"><div class="dot dot-amber"></div> Logos Blockchain</div>
+        </div>
+      </div>
+
+      <div class="content">
+
+        <!-- SOURCE VIEW -->
+        <div id="view-source">
+          <div class="section-title">Submit a Document</div>
+          <div class="section-sub">Processed entirely in your browser. Nothing leaves until you submit.</div>
+          <div class="step-bar" id="step-bar"></div>
+
+          <div id="step-0">
+            <div class="drop-zone" id="drop-zone" onclick="loadDemo()">
+              <div class="drop-icon" id="drop-icon">↑</div>
+              <div class="drop-text" id="drop-text">Drop file here or click to browse</div>
+              <div class="drop-sub" id="drop-sub">PDF, DOCX, images, ZIP · Any size</div>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-ghost" onclick="loadDemo()">Load demo file</button>
+              <button class="btn btn-primary" id="btn-to-strip" disabled onclick="goStep(1)">Continue to Strip →</button>
+            </div>
+          </div>
+
+          <div id="step-1" class="hidden">
+            <div class="card">
+              <div class="row-space" style="margin-bottom:12px;">
+                <div>
+                  <div style="font-size:13px;font-weight:600;" id="strip-filename">document.pdf</div>
+                  <div style="font-size:11px;color:#5c5f66;margin-top:2px;">Scanning for metadata…</div>
+                </div>
+                <span class="badge" style="background:rgba(245,159,0,0.15);color:#f59f00;">Needs strip</span>
+              </div>
+              <div class="alert alert-warning">⚠ Identifying metadata detected. Strip before submitting.</div>
+              <div id="strip-fields" style="margin-bottom:12px;"></div>
+              <div id="strip-progress" class="hidden">
+                <div style="font-size:12px;color:#909296;margin-bottom:6px;" id="strip-pct-label">Stripping… 0%</div>
+                <div class="progress-bar"><div class="progress-fill" id="strip-fill" style="width:0%"></div></div>
+              </div>
+              <div id="strip-done" class="hidden">
+                <div class="alert alert-success">✓ 7 metadata fields removed · Document re-rendered to clean format</div>
+              </div>
+              <div style="display:flex;gap:8px;margin-top:8px;">
+                <button class="btn btn-ghost" onclick="goStep(0)">← Back</button>
+                <button class="btn btn-primary" id="btn-run-strip" onclick="runStrip()">Run Metadata Strip</button>
+                <button class="btn btn-primary hidden" id="btn-to-outlet" onclick="loadOutlets()">Select Outlet →</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="step-2" class="hidden">
+            <div style="font-size:12px;color:#909296;margin-bottom:14px;line-height:1.6;">Outlets are registered on Logos Blockchain with a credibility stake. Your submission is encrypted — only the selected outlet can decrypt it.</div>
+            <div id="outlet-list"></div>
+            <textarea placeholder="Cover note (optional — encrypted, only the outlet can read it)" style="margin-bottom:12px;"></textarea>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-ghost" onclick="goStep(1)">← Back</button>
+              <button class="btn btn-primary" id="btn-to-review" disabled onclick="goStep(3)">Review &amp; Submit →</button>
+            </div>
+          </div>
+
+          <div id="step-3" class="hidden">
+            <div class="card" style="margin-bottom:12px;">
+              <div style="font-size:13px;font-weight:600;margin-bottom:12px;">Review before submitting</div>
+              <div class="field-row"><span class="field-label">Document</span><span class="field-val" id="review-doc">—</span></div>
+              <div class="field-row"><span class="field-label">Metadata stripped</span><span class="field-val-green">✓ 7 fields removed</span></div>
+              <div class="field-row"><span class="field-label">Outlet</span><span class="field-val" id="review-outlet">—</span></div>
+              <div class="field-row"><span class="field-label">Encryption</span><span class="field-val">ECIES · secp256k1 + AES-256-GCM</span></div>
+              <div class="field-row"><span class="field-label">Your IP visible</span><span class="field-val-green">✓ No — Logos Messaging gossip</span></div>
+              <div class="field-row" style="border:none"><span class="field-label">Identity linked</span><span class="field-val-green">✓ No — ephemeral key only</span></div>
+            </div>
+            <div id="submit-log" class="log-box hidden"></div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-ghost" id="btn-back-3" onclick="goStep(2)">← Back</button>
+              <button class="btn btn-primary" id="btn-submit" onclick="runSubmit()">🔒 Encrypt &amp; Submit</button>
+            </div>
+          </div>
+
+          <div id="step-4" class="hidden">
+            <div class="alert alert-success">✓ Delivered via Logos Messaging · Metadata stripped · End-to-end encrypted</div>
+            <div class="card" style="margin-bottom:10px;">
+              <div style="font-size:13px;font-weight:600;margin-bottom:6px;">Your Claim Key</div>
+              <div style="font-size:11px;color:#909296;margin-bottom:10px;">This 12-word phrase is your only proof of submission and tip claim key. It is not stored anywhere.</div>
+              <div class="alert alert-warning" style="margin-bottom:10px;">⚠ Cannot be recovered if lost</div>
+              <div class="mnemonic" id="mnemonic-box"></div>
+            </div>
+            <div class="card" style="margin-bottom:10px;">
+              <div style="font-size:13px;font-weight:600;margin-bottom:10px;">Submission Details</div>
+              <div class="hash-box"><span class="hash-val" id="hash-ephpub"></span><button class="copy-btn" onclick="copyHash('hash-ephpub',this)">Copy</button></div>
+              <div class="hash-box"><span class="hash-val" id="hash-dochash"></span><button class="copy-btn" onclick="copyHash('hash-dochash',this)">Copy</button></div>
+              <div class="hash-box"><span class="hash-val" id="hash-msgid"></span><button class="copy-btn" onclick="copyHash('hash-msgid',this)">Copy</button></div>
+            </div>
+            <button class="btn btn-ghost" onclick="resetSource()">Submit another document</button>
+          </div>
+        </div>
+
+        <!-- OUTLET VIEW -->
+        <div id="view-outlet" class="hidden">
+          <div class="section-title">Outlet Dashboard</div>
+          <div class="section-sub">Zero Knowledge Reports</div>
+          <div class="card" style="margin-bottom:14px;">
+            <div class="field-row"><span class="field-label">Outlet</span><span class="field-val">Zero Knowledge Reports</span></div>
+            <div class="field-row"><span class="field-label">Logos Messaging Topic</span><span style="font-family:monospace;font-size:10px;color:#909296">/logos-drop/1/sub/outlet_3</span></div>
+            <div class="field-row"><span class="field-label">Staked Bond</span><span style="color:#0061ff;font-weight:600">31,000 NOM</span></div>
+            <div class="field-row" style="border:none"><span class="field-label">Publications</span><span class="field-val">112</span></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+            <div class="dot dot-green" style="animation:pulse 1.8s infinite"></div>
+            <span style="font-size:12px;color:#909296;">Logos Messaging filter active — subscribed to submission topic</span>
+          </div>
+          <div class="card">
+            <div style="font-size:12px;font-weight:600;margin-bottom:12px;">Encrypted Inbox (3 submissions)</div>
+            <div id="inbox-list"></div>
+          </div>
+        </div>
+
+        <!-- READER VIEW -->
+        <div id="view-reader" class="hidden">
+          <div class="section-title">Published Documents</div>
+          <div class="section-sub">Anchored on Logos Blockchain · Stored on Logos Storage · Delivered via Logos Messaging</div>
+          <div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;" id="tag-filters"></div>
+          <div id="pub-list"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>Built on the <a href="https://logos.co" target="_blank">Logos stack</a> · <a href="https://github.com/Beach-Bum/ghostdrop" target="_blank">github.com/Beach-Bum/ghostdrop</a> · MIT Licence</p>
+  </div>
+
+</div>
+<script>
+const WORDS = ["access","arctic","arrow","audit","basin","beacon","border","carbon","cipher","codex","commit","delta","deploy","derive","domain","echo","epoch","field","forge","ghost","grant","harbor","kernel","layer","limit","logic","matrix","mirror","orbit","parse","phase","prime","proof","proxy","relay","scope","seal","signal","stake","state","stream","token","trace","trust","vault","verify","yield","zero"];
+const rHex = n => Array.from({length:n},()=>Math.floor(Math.random()*16).toString(16)).join("");
+const rB58 = n => { const c="123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"; return Array.from({length:n},()=>c[Math.floor(Math.random()*c.length)]).join(""); };
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
+const fmtAgo = ts => { const s=Math.floor((Date.now()-ts)/1000); if(s<3600) return Math.floor(s/60)+"m ago"; if(s<86400) return Math.floor(s/3600)+"h ago"; return Math.floor(s/86400)+"d ago"; };
+const truncate = (s,n=20) => s.slice(0,n)+"…"+s.slice(-6);
+
+let currentStep=0, selectedFile=null, selectedOutlet=null;
+
+const OUTLETS = [
+  {id:"o1",name:"The Distributed Press",stake:"12,400 NOM",docs:47,topic:"/logos-drop/1/sub/o1"},
+  {id:"o2",name:"Ciphertext Journal",stake:"8,200 NOM",docs:23,topic:"/logos-drop/1/sub/o2"},
+  {id:"o3",name:"Zero Knowledge Reports",stake:"31,000 NOM",docs:112,topic:"/logos-drop/1/sub/o3"},
+];
+const PUBS = [
+  {id:"p1",headline:"Internal Memos Reveal Systematic Data Retention Violations",outlet:"Zero Knowledge Reports",txHash:"0x"+rHex(64),block:848201,ts:Date.now()-432000000,tags:["corporate","privacy"],tipPool:"0.34 XMR",summary:"Documents show a major technology firm retained user communications for up to 7 years beyond stated policy, directly violating published privacy commitments."},
+  {id:"p2",headline:"Procurement Records Expose Pattern of Regulatory Capture",outlet:"The Distributed Press",txHash:"0x"+rHex(64),block:841932,ts:Date.now()-1036800000,tags:["government","finance"],tipPool:"1.20 XMR",summary:"Records cross-referenced with lobbying disclosures reveal a coordinated strategy to influence regulatory outcomes across three separate agencies."},
+  {id:"p3",headline:"Leaked Audit: Environmental Compliance Data Falsified for 4 Years",outlet:"Ciphertext Journal",txHash:"0x"+rHex(64),block:839104,ts:Date.now()-1814400000,tags:["environment","fraud"],tipPool:"0.78 XMR",summary:"An internal audit shows environmental monitoring reports submitted to regulators were systematically altered to conceal exceedances of permitted emission levels."},
+];
+const STEPS = ["Upload","Strip","Outlet","Submit","Receipt"];
+const STRIP_FIELDS = ["Author & editor names","GPS coordinates","Creation timestamp","Software version","Revision history","Printer stego dots","Last-modified date"];
+
+function renderStepBar() {
+  document.getElementById("step-bar").innerHTML = STEPS.map((s,i)=>{
+    const cls = i<currentStep?"step-done":i===currentStep?"step-active":"step-pending";
+    return `<div class="step-pill ${cls}"><span>${i<currentStep?"✓":(i+1)}</span><span>${s}</span></div>`;
+  }).join("");
+}
+
+function goStep(n) {
+  for(let i=0;i<5;i++) document.getElementById("step-"+i).classList.add("hidden");
+  currentStep=n; renderStepBar();
+  document.getElementById("step-"+n).classList.remove("hidden");
+}
+
+function switchView(view,el) {
+  document.querySelectorAll(".nav-item").forEach(i=>i.classList.remove("active"));
+  el.classList.add("active");
+  ["source","outlet","reader"].forEach(v=>document.getElementById("view-"+v).classList.add("hidden"));
+  document.getElementById("view-"+view).classList.remove("hidden");
+  document.getElementById("topbar-title").textContent = {source:"Submit Document",outlet:"Outlet Inbox",reader:"Publications"}[view];
+  if(view==="outlet") renderInbox();
+  if(view==="reader") renderReader();
+}
+
+function loadDemo() {
+  selectedFile = {name:"confidential_memo.pdf",size:"2.4 MB",type:"application/pdf"};
+  document.getElementById("drop-icon").textContent="📄";
+  document.getElementById("drop-text").textContent=selectedFile.name;
+  document.getElementById("drop-sub").textContent=selectedFile.size+" · "+selectedFile.type;
+  document.getElementById("drop-zone").classList.add("has-file");
+  document.getElementById("btn-to-strip").disabled=false;
+  document.getElementById("strip-filename").textContent=selectedFile.name;
+}
+
+function loadOutlets() {
+  currentStep=2; renderStepBar();
+  for(let i=0;i<5;i++) document.getElementById("step-"+i).classList.add("hidden");
+  document.getElementById("step-2").classList.remove("hidden");
+  document.getElementById("outlet-list").innerHTML = OUTLETS.map(o=>`
+    <div class="outlet-card" onclick="selectOutlet('${o.id}',this)">
+      <div class="row-space">
+        <div>
+          <div style="font-size:13px;font-weight:600;margin-bottom:3px;">${o.name}</div>
+          <div style="font-size:10px;color:#5c5f66;font-family:monospace">${o.topic}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:12px;font-weight:600;color:#0061ff">${o.stake}</div>
+          <div style="font-size:10px;color:#5c5f66">${o.docs} publications</div>
+        </div>
+      </div>
+    </div>`).join("");
+}
+
+function selectOutlet(id,el) {
+  document.querySelectorAll(".outlet-card").forEach(c=>c.classList.remove("selected"));
+  el.classList.add("selected");
+  selectedOutlet = OUTLETS.find(o=>o.id===id);
+  document.getElementById("btn-to-review").disabled=false;
+  goStep(3);
+  document.getElementById("review-doc").textContent = selectedFile ? selectedFile.name : "confidential_memo.pdf";
+  document.getElementById("review-outlet").textContent = selectedOutlet.name;
+}
+
+function runStrip() {
+  document.getElementById("strip-fields").innerHTML = STRIP_FIELDS.map(f=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #373a40;font-size:12px;">
+      <span style="color:#f59f00">·</span><span style="color:#909296">${f}</span>
+    </div>`).join("");
+  document.getElementById("btn-run-strip").classList.add("hidden");
+  document.getElementById("strip-progress").classList.remove("hidden");
+  let pct=0;
+  const t = setInterval(()=>{
+    pct=Math.min(100,pct+7);
+    document.getElementById("strip-fill").style.width=pct+"%";
+    document.getElementById("strip-pct-label").textContent="Stripping… "+pct+"%";
+    if(pct===100){
+      clearInterval(t);
+      document.getElementById("strip-progress").classList.add("hidden");
+      document.getElementById("strip-done").classList.remove("hidden");
+      document.getElementById("strip-fields").innerHTML = STRIP_FIELDS.map(f=>`
+        <div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px;color:#5c5f66">
+          <svg width=13 height=13 viewBox="0 0 13 13"><path d="M2 6.5L5 9.5L11 3.5" stroke="#2f9e44" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg>${f}
+        </div>`).join("");
+      document.getElementById("btn-to-outlet").classList.remove("hidden");
+    }
+  },70);
+}
+
+async function runSubmit() {
+  const btn=document.getElementById("btn-submit");
+  const back=document.getElementById("btn-back-3");
+  btn.disabled=back.disabled=true;
+  btn.textContent="Transmitting…";
+  const log=document.getElementById("submit-log");
+  log.classList.remove("hidden");
+  const lines=[
+    ["► Generating ephemeral secp256k1 keypair…","log-dim"],
+    ["  pubkey: "+rHex(32)+"…","log-accent"],
+    ["► ECIES encrypting document payload…","log-dim"],
+    ["  payload: 2.4 KB encrypted","log-success"],
+    ["► Connecting to Logos Messaging p2p network…","log-dim"],
+    ["  peers: 7 connected","log-accent"],
+    ["► Pushing to "+(selectedOutlet?selectedOutlet.topic:"/logos-drop/1/sub/o3")+"…","log-dim"],
+    ["  msgId: "+rHex(32),"log-success"],
+    ["► Transmission complete via Logos Messaging gossip","log-success"],
+  ];
+  for(const [msg,cls] of lines){
+    await sleep(320);
+    log.innerHTML+=`<div class="${cls}">${msg}</div>`;
+    log.scrollTop=log.scrollHeight;
+  }
+  await sleep(200);
+  document.getElementById("mnemonic-box").textContent=Array.from({length:12},()=>WORDS[Math.floor(Math.random()*WORDS.length)]).join(" ");
+  document.getElementById("hash-ephpub").textContent="ephPub: "+rHex(66);
+  document.getElementById("hash-dochash").textContent="sha256: "+rHex(64);
+  document.getElementById("hash-msgid").textContent="msgId: "+rHex(32);
+  goStep(4);
+}
+
+function copyHash(id,btn){
+  navigator.clipboard&&navigator.clipboard.writeText(document.getElementById(id).textContent);
+  btn.textContent="✓"; setTimeout(()=>btn.textContent="Copy",1500);
+}
+
+function resetSource(){
+  selectedFile=selectedOutlet=null;
+  document.getElementById("drop-icon").textContent="↑";
+  document.getElementById("drop-text").textContent="Drop file here or click to browse";
+  document.getElementById("drop-sub").textContent="PDF, DOCX, images, ZIP · Any size";
+  document.getElementById("drop-zone").classList.remove("has-file");
+  document.getElementById("btn-to-strip").disabled=true;
+  document.getElementById("strip-done").classList.add("hidden");
+  document.getElementById("strip-progress").classList.add("hidden");
+  document.getElementById("btn-run-strip").classList.remove("hidden");
+  document.getElementById("btn-to-outlet").classList.add("hidden");
+  document.getElementById("submit-log").innerHTML="";
+  goStep(0);
+}
+
+function renderInbox(){
+  const items=[
+    {ephPub:rHex(48),size:"2.4 MB",type:"PDF",ts:Date.now()-7200000,status:"unread"},
+    {ephPub:rHex(48),size:"847 KB",type:"PDF",ts:Date.now()-64800000,status:"unread"},
+    {ephPub:rHex(48),size:"5.1 MB",type:"ZIP",ts:Date.now()-259200000,status:"read"},
+  ];
+  document.getElementById("inbox-list").innerHTML=items.map(item=>`
+    <div style="display:grid;grid-template-columns:1fr 60px 50px 72px 60px;gap:8px;padding:9px 0;border-bottom:1px solid #373a40;align-items:center;font-size:11px;">
+      <span style="font-family:monospace;color:#74c0fc;">${truncate(item.ephPub)}</span>
+      <span style="color:#909296">${item.size}</span>
+      <span style="color:#909296">${item.type}</span>
+      <span style="color:#909296">${fmtAgo(item.ts)}</span>
+      <span class="badge ${item.status==="unread"?"badge-blue":""}" style="${item.status==="read"?"background:#373a40;color:#5c5f66":""}">${item.status}</span>
+    </div>`).join("");
+}
+
+function renderReader(filterTag){
+  const tags=[...new Set(PUBS.flatMap(p=>p.tags))];
+  document.getElementById("tag-filters").innerHTML=
+    `<button class="btn ${!filterTag?"btn-primary":"btn-ghost"}" style="font-size:11px;padding:5px 12px" onclick="renderReader()">All</button>`+
+    tags.map(t=>`<button class="btn ${filterTag===t?"btn-primary":"btn-ghost"}" style="font-size:11px;padding:5px 12px" onclick="renderReader('${t}')">${t}</button>`).join("");
+  const pubs=filterTag?PUBS.filter(p=>p.tags.includes(filterTag)):PUBS;
+  document.getElementById("pub-list").innerHTML=pubs.map(p=>`
+    <div class="pub-card">
+      <div class="pub-headline">${p.headline}</div>
+      <div class="pub-summary">${p.summary}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:11px;color:#5c5f66">${p.outlet}</span>
+          ${p.tags.map(t=>`<span class="badge" style="background:#373a40;color:#5c5f66">${t}</span>`).join("")}
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span class="badge badge-green">✓ verified</span>
+          <span style="font-size:11px;color:#0061ff">tip: ${p.tipPool}</span>
+          <span style="font-size:10px;color:#5c5f66">${fmtAgo(p.ts)}</span>
+        </div>
+      </div>
+    </div>`).join("");
+}
+
+goStep(0);
+renderReader();
+</script>
+</body>
+</html>
