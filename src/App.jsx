@@ -5,7 +5,7 @@ const GhostIcon = ({ size = 22 }) => (
   <span style={{ fontSize: size, lineHeight: 1, display: 'block' }}>👻</span>
 )
 
-// ─── Design tokens (Dropbox dark palette) ────────────────────────
+// ─── Design tokens (WCAG AA accessible dark palette) ─────────────
 const injectStyles = () => {
   if (document.getElementById("gd-styles")) return;
   const s = document.createElement("style");
@@ -14,24 +14,24 @@ const injectStyles = () => {
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
     * { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --sidebar: #1e1f24;
-      --bg: #25262b;
-      --surface: #2c2e33;
-      --surface2: #373a40;
-      --border: #373a40;
-      --border-light: #2c2e33;
-      --accent: #0061ff;
-      --accent-hover: #0052d9;
-      --accent-soft: rgba(0,97,255,0.12);
+      --sidebar: #1a1b1e;
+      --bg: #212226;
+      --surface: #2a2b30;
+      --surface2: #35363c;
+      --border: #3d3e44;
+      --border-light: #2a2b30;
+      --accent: #4d94ff;
+      --accent-hover: #3d84ef;
+      --accent-soft: rgba(77,148,255,0.14);
       --text: #f1f3f5;
-      --text-2: #909296;
-      --text-3: #5c5f66;
-      --green: #2f9e44;
-      --green-soft: rgba(47,158,68,0.12);
-      --amber: #f59f00;
-      --amber-soft: rgba(245,159,0,0.12);
-      --red: #e03131;
-      --red-soft: rgba(224,49,49,0.1);
+      --text-2: #b0b3b8;
+      --text-3: #8b8d93;
+      --green: #51cf66;
+      --green-soft: rgba(81,207,102,0.12);
+      --amber: #fcc419;
+      --amber-soft: rgba(252,196,25,0.12);
+      --red: #ff6b6b;
+      --red-soft: rgba(255,107,107,0.1);
       --radius: 10px;
       --radius-sm: 6px;
       --shadow: 0 1px 3px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3);
@@ -48,20 +48,21 @@ const injectStyles = () => {
     .gd-pulse { animation: pulse 1.8s ease-in-out infinite; }
     .gd-spin { animation: spin 0.9s linear infinite; }
 
-    /* Buttons */
-    .btn { cursor: pointer; border: none; border-radius: var(--radius-sm); font-family: inherit; font-size: 14px; font-weight: 500; padding: 9px 18px; transition: all 0.15s ease; display: inline-flex; align-items: center; gap: 7px; }
-    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    /* Buttons — min 44px touch target (WCAG 2.5.5) */
+    .btn { cursor: pointer; border: none; border-radius: var(--radius-sm); font-family: inherit; font-size: 14px; font-weight: 600; padding: 10px 20px; min-height: 40px; transition: all 0.15s ease; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     .btn-primary { background: var(--accent); color: white; }
-    .btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+    .btn-primary:hover:not(:disabled) { background: var(--accent-hover); transform: translateY(-1px); }
     .btn-ghost { background: transparent; color: var(--text-2); border: 1px solid var(--border); }
     .btn-ghost:hover:not(:disabled) { background: var(--surface2); color: var(--text); border-color: var(--text-3); }
     .btn-danger { background: var(--red-soft); color: var(--red); border: 1px solid transparent; }
-    .btn-danger:hover:not(:disabled) { background: rgba(224,49,49,0.18); }
-    .btn-sm { padding: 6px 13px; font-size: 13px; }
+    .btn-danger:hover:not(:disabled) { background: rgba(255,107,107,0.18); }
+    .btn-sm { padding: 6px 13px; font-size: 13px; min-height: 32px; }
 
-    /* Inputs */
-    .input { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-family: inherit; font-size: 14px; padding: 9px 13px; width: 100%; outline: none; transition: border-color 0.15s; }
-    .input:focus { border-color: var(--accent); }
+    /* Inputs — clear focus states */
+    .input { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-family: inherit; font-size: 14px; padding: 10px 14px; width: 100%; outline: none; transition: border-color 0.15s, box-shadow 0.15s; }
+    .input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
     .input::placeholder { color: var(--text-3); }
     textarea.input { resize: vertical; min-height: 90px; line-height: 1.5; }
 
@@ -69,14 +70,16 @@ const injectStyles = () => {
     .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
 
     /* Nav items */
-    .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: var(--radius-sm); cursor: pointer; font-size: 14px; font-weight: 500; color: var(--text-2); transition: all 0.12s; text-decoration: none; user-select: none; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius-sm); cursor: pointer; font-size: 14px; font-weight: 500; color: var(--text-2); transition: all 0.12s; text-decoration: none; user-select: none; }
     .nav-item:hover { background: var(--surface); color: var(--text); }
     .nav-item.active { background: var(--accent-soft); color: var(--accent); }
+    .nav-item:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 
     /* Outlet cards */
     .outlet-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 16px; cursor: pointer; transition: all 0.15s; }
     .outlet-card:hover { border-color: var(--accent); background: var(--accent-soft); }
     .outlet-card.selected { border-color: var(--accent); background: var(--accent-soft); }
+    .outlet-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
     /* Steps */
     .step-pill { display: flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 50px; font-size: 13px; font-weight: 500; transition: all 0.15s; }
@@ -111,7 +114,7 @@ const injectStyles = () => {
 
     /* Hash display */
     .hash-box { background: var(--surface2); border-radius: var(--radius-sm); padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-    .hash-value { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 11.5px; color: #74c0fc; word-break: break-all; flex: 1; }
+    .hash-value { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; color: #8ccfff; word-break: break-all; flex: 1; }
 
     /* Dot indicator */
     .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
