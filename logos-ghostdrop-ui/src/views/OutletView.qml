@@ -1,122 +1,115 @@
-// OutletView.qml — port of src/views/OutletView.jsx
-import QtQuick
-import QtQuick.Controls
-import QtQuick.Layouts
+// OutletView.qml — Outlet inbox, ECIES decrypt, file download, publish pipeline
+import QtQuick 2.15
+import QtQuick.Controls 2.15
+import QtQuick.Layouts 1.15
+import QtQuick.Dialogs 1.3
+import "../components"
 
 Item {
     id: root
-    implicitHeight: content.implicitHeight
-    property var colors
+    anchors.fill: parent
 
-    property string screen: "dashboard"  // dashboard|inbox|review|published|rejected
-    property var    inbox: []
-    property var    selected: null
-    property string headline: ""
-    property var    publishLog: []
-    property var    publishedRecord: null
-    property string rejectReason: ""
-    property bool   publishing: false
-    property bool   loadingInbox: false
+    // Panel navigation: dashboard | inbox | decrypt | decrypted
+    property string panel: "dashboard"
 
-    readonly property var OUTLET: ({
-        id: "outlet_3",
-        name: "Zero Knowledge Reports",
-        address: "0x7f4a1b2c3d4e5f6789abcdef01234567890abcde",
-        stake: "31,000 NOM",
-        docs: 112,
-        topic: "/logos-drop/1/submissions/outlet_3/proto"
-    })
+    // Currently selected inbox item
+    property var selectedItem: null
+
+    // Decrypted envelope data
+    property var decryptedEnvelope: null
+    property bool decrypting: false
+    property string decryptError: ""
+    property bool publishing: false
+
+    // Signals to bridge
+    signal loadInboxRequested()
+    signal decryptRequested(string encryptedHex, string privKeyHex)
+    signal publishRequested(string headline, string docHash, string mimeType)
+    signal rejectRequested(string ephPub, string reason)
+    signal downloadRequested(string filename, string mimeType)
 
     Connections {
         target: ghostDrop
-        function onInboxLoaded(items) {
-            root.inbox = items
-            root.loadingInbox = false
-            root.screen = "inbox"
+        function onDecryptResult(success, envelopeJson, errorMsg) {
+            decrypting = false
+            if (success) {
+                decryptedEnvelope = JSON.parse(envelopeJson)
+                decryptError = ""
+                root.panel = "decrypted"
+            } else {
+                decryptError = errorMsg
+            }
         }
-        function onPublishLog(msg, color) {
-            root.publishLog = root.publishLog.concat([{ msg: msg, color: color }])
+        function onPublishResult(success, cid, txHash, block) {
+            publishing = false
+            if (success) {
+                publishCid.value  = cid
+                publishTx.value   = txHash
+                publishBlock.text = "#" + block
+                publishDone.visible = true
+            }
         }
-        function onPublishComplete(record) {
-            root.publishedRecord = record
-            root.publishing = false
-            root.screen = "published"
-        }
-        function onPublishError(err) {
-            root.publishing = false
-            root.publishLog = root.publishLog.concat([{ msg: "✗ " + err, color: "#ff6b6b" }])
+        function onInboxLoaded(itemsJson) {
+            var items = JSON.parse(itemsJson)
+            inboxModel.clear()
+            for (var i = 0; i < items.length; i++) inboxModel.append(items[i])
+            root.panel = "inbox"
         }
     }
 
-    Column {
-        id: content
-        anchors { left: parent.left; right: parent.right }
-        spacing: 16
+    // ── Inbox model ───────────────────────────────────────────────
+    ListModel { id: inboxModel }
+
+    // ── Root stack ────────────────────────────────────────────────
+    StackLayout {
+        anchors.fill: parent
+        currentIndex: ["dashboard","inbox","decrypt","decrypted"].indexOf(root.panel)
 
         // ── Dashboard ─────────────────────────────────────────────
         Item {
-            visible: root.screen === "dashboard"
-            width: parent.width
-            implicitHeight: visible ? dashCol.implicitHeight : 0
-            Column {
-                id: dashCol
-                width: parent.width
-                spacing: 16
-
-                SectionTitle { text: "Outlet Dashboard"; sub: OUTLET.name; colors: colors }
-
-                Rectangle {
-                    width: parent.width
-                    color: colors.surface; border.color: colors.border; radius: colors.radius
+            ScrollView {
+                anchors.fill: parent; contentWidth: parent.width
+                ColumnLayout {
+                    width: parent.width; spacing: 0
                     padding: 20
-                    implicitHeight: infoCol.implicitHeight + 40
-                    Column {
-                        id: infoCol
-                        width: parent.width - 40
-                        anchors.centerIn: parent
-                        spacing: 0
-                        Repeater {
-                            model: [
-                                { label: "Outlet",          value: OUTLET.name },
-                                { label: "Logos Blockchain", value: OUTLET.address },
-                                { label: "Logos Messaging Topic",       value: OUTLET.topic },
-                                { label: "Staked Bond",      value: OUTLET.stake },
-                                { label: "Publications",     value: OUTLET.docs.toString() },
-                            ]
-                            delegate: Rectangle {
-                                width: infoCol.width; height: 36
-                                color: "transparent"
-                                Rectangle { anchors.bottom: parent.bottom; width: parent.width; height: 1; color: colors.border }
-                                RowLayout {
-                                    anchors.fill: parent
-                                    Text { text: modelData.label; color: colors.textSecond; font.pixelSize: 13 }
-                                    Item { Layout.fillWidth: true }
-                                    Text {
-                                        text: modelData.value
-                                        color: colors.textPrimary
-                                        font { pixelSize: 11; family: colors.monoFamily }
-                                        elide: Text.ElideMiddle
-                                        Layout.maximumWidth: 300
-                                    }
-                                }
-                            }
+
+                    SectionTitle { text: "Outlet Dashboard" }
+                    GAlert { text: "Outlet: Zero Knowledge Reports · 31,000 NOM staked"; type: "info" }
+
+                    Rectangle {
+                        Layout.fillWidth: true; height: 1
+                        color: "#373a40"; Layout.topMargin: 8; Layout.bottomMargin: 8
+                    }
+
+                    // Status rows
+                    Repeater {
+                        model: [
+                            { label: "Outlet",         value: "Zero Knowledge Reports"         },
+                            { label: "Topic",          value: "/logos-drop/1/sub/outlet_3"     },
+                            { label: "Staked Bond",    value: "31,000 NOM"                     },
+                            { label: "Publications",   value: "112"                            },
+                        ]
+                        delegate: RowLayout {
+                            Layout.fillWidth: true; Layout.bottomMargin: 6
+                            Text { text: modelData.label; color: "#909296"; font.pixelSize: 11; Layout.minimumWidth: 120 }
+                            Text { text: modelData.value; color: "#f1f3f5"; font.pixelSize: 11; font.family: "Menlo, monospace"; wrapMode: Text.WrapAnywhere; Layout.fillWidth: true }
                         }
                     }
-                }
 
-                Row {
-                    spacing: 8
-                    Rectangle { width: 7; height: 7; radius: 3.5; color: colors.green; anchors.verticalCenter: parent.verticalCenter }
-                    Text { text: "Logos Messaging filter active — subscribed to submission topic"; color: colors.textSecond; font.pixelSize: 13 }
-                }
+                    // Messaging status indicator
+                    RowLayout {
+                        Layout.topMargin: 12; Layout.bottomMargin: 16; spacing: 8
+                        Rectangle { width: 6; height: 6; radius: 3; color: "#2f9e44" }
+                        Text { text: "Logos Messaging filter active — subscribed to submission topic"; color: "#909296"; font.pixelSize: 11 }
+                    }
 
-                GButton {
-                    label: root.loadingInbox ? "Loading inbox…" : "Open Encrypted Inbox"
-                    enabled: !root.loadingInbox
-                    colors: colors
-                    onClicked: {
-                        root.loadingInbox = true
-                        ghostDrop.loadInbox(OUTLET.id)
+                    GButton {
+                        text: "Open Encrypted Inbox"
+                        primary: true
+                        onClicked: {
+                            ghostDrop.loadInbox(ghostDrop.outletId)
+                            root.panel = "inbox"
+                        }
                     }
                 }
             }
@@ -124,250 +117,355 @@ Item {
 
         // ── Inbox ─────────────────────────────────────────────────
         Item {
-            visible: root.screen === "inbox"
-            width: parent.width
-            implicitHeight: visible ? inboxCol.implicitHeight : 0
-            Column {
-                id: inboxCol
-                width: parent.width
-                spacing: 16
+            ColumnLayout {
+                anchors.fill: parent; anchors.margins: 20; spacing: 12
 
-                SectionTitle {
-                    text: "Encrypted Inbox"
-                    sub: root.inbox.length + " submissions · All end-to-end encrypted"
-                    colors: colors
+                SectionTitle { text: "Encrypted Inbox · " + inboxModel.count + " submissions" }
+
+                Text {
+                    text: "All submissions are ECIES-encrypted. Click Decrypt to open and download."
+                    color: "#909296"; font.pixelSize: 11; wrapMode: Text.WordWrap
+                    Layout.fillWidth: true
                 }
 
-                Rectangle {
-                    width: parent.width
-                    color: colors.surface; border.color: colors.border; radius: colors.radius
-                    implicitHeight: inboxList.implicitHeight + 40
-
-                    Column {
-                        id: inboxList
-                        anchors { fill: parent; margins: 0 }
-
-                        // Header
-                        Rectangle {
-                            width: parent.width; height: 32
-                            color: colors.surface2
-                            radius: colors.radius
-                            Row {
-                                anchors { fill: parent; leftMargin: 18; rightMargin: 18 }
-                                spacing: 0
-                                Repeater {
-                                    model: [
-                                        { label: "Ephemeral Key", flex: 1 },
-                                        { label: "Size",   flex: 0 },
-                                        { label: "Type",   flex: 0 },
-                                        { label: "Received", flex: 0 },
-                                        { label: "Status", flex: 0 },
-                                    ]
-                                    delegate: Text {
-                                        width: modelData.flex ? (inboxList.width - 18 * 2 - 280) : 70
-                                        text: modelData.label
-                                        color: colors.textDim
-                                        font { pixelSize: 11; letterSpacing: 1.2 }
-                                        anchors.verticalCenter: parent.verticalCenter
-                                    }
-                                }
-                            }
-                        }
-
-                        Repeater {
-                            model: root.inbox
-                            delegate: Rectangle {
-                                width: inboxList.width; height: 44
-                                color: hov.containsMouse ? colors.surface2 : "transparent"
-                                Rectangle { anchors.bottom: parent.bottom; width: parent.width; height: 1; color: colors.border }
-                                Row {
-                                    anchors { fill: parent; leftMargin: 18; rightMargin: 18 }
-                                    spacing: 0
-                                    Text { width: inboxList.width - 18*2 - 280; text: modelData.ephPub.substring(0,22) + "…"; color: "#74c0fc"; font { pixelSize: 11; family: colors.monoFamily }; anchors.verticalCenter: parent.verticalCenter }
-                                    Text { width: 70; text: modelData.size;   color: colors.textSecond; font.pixelSize: 12; anchors.verticalCenter: parent.verticalCenter }
-                                    Text { width: 70; text: modelData.type;   color: colors.textSecond; font.pixelSize: 12; anchors.verticalCenter: parent.verticalCenter }
-                                    Text { width: 80; text: ghostDrop.fmtAgo(modelData.ts); color: colors.textSecond; font.pixelSize: 12; anchors.verticalCenter: parent.verticalCenter }
-                                    Rectangle {
-                                        width: 60; height: 22
-                                        color: modelData.status === "unread" ? colors.accentSoft : colors.surface2
-                                        radius: 4
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        Text { anchors.centerIn: parent; text: modelData.status; color: modelData.status === "unread" ? colors.accent : colors.textDim; font.pixelSize: 11 }
-                                    }
-                                }
-                                HoverHandler { id: hov }
-                                MouseArea {
-                                    anchors.fill: parent
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: {
-                                        root.selected = modelData
-                                        root.headline = ""
-                                        root.publishLog = []
-                                        root.rejectReason = ""
-                                        root.screen = "review"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                GButton { label: "← Dashboard"; ghost: true; colors: colors; onClicked: root.screen = "dashboard" }
-            }
-        }
-
-        // ── Review ────────────────────────────────────────────────
-        Item {
-            visible: root.screen === "review" && root.selected !== null
-            width: parent.width
-            implicitHeight: visible ? reviewCol.implicitHeight : 0
-            Column {
-                id: reviewCol
-                width: parent.width
-                spacing: 16
-
-                SectionTitle { text: "Review Submission"; colors: colors }
-
-                HashDisplay { label: "Source Ephemeral Pubkey"; value: root.selected ? root.selected.ephPub : ""; colors: colors; width: parent.width }
-
-                Row {
-                    spacing: 16
-                    Text { text: "Received: " + (root.selected ? ghostDrop.fmtAgo(root.selected.ts) : ""); color: colors.textSecond; font.pixelSize: 13 }
-                    Text { text: "Size: " + (root.selected ? root.selected.size : ""); color: colors.textSecond; font.pixelSize: 13 }
-                    Text { text: "Type: " + (root.selected ? root.selected.type : ""); color: colors.textSecond; font.pixelSize: 13 }
-                    Rectangle {
-                        height: 22; width: stripBadge.width + 16; radius: 4
-                        color: root.selected && root.selected.stripped ? colors.greenSoft : colors.amberSoft
-                        Text {
-                            id: stripBadge
-                            anchors.centerIn: parent
-                            text: root.selected && root.selected.stripped ? "✓ Strip attested" : "⚠ No attestation"
-                            color: root.selected && root.selected.stripped ? colors.green : colors.amber
-                            font.pixelSize: 11
-                        }
-                    }
-                }
-
-                // Encrypted doc placeholder
-                Rectangle {
-                    width: parent.width; height: 80
-                    color: colors.surface2; radius: colors.radiusSm
-                    Text { anchors.centerIn: parent; text: "ECIES ENCRYPTED — decrypt with outlet private key to view"; color: colors.textDim; font.pixelSize: 12 }
-                }
-
-                // Headline input
-                Text { text: "Publication headline"; color: colors.textSecond; font.pixelSize: 13 }
-                TextField {
-                    width: reviewCol.width
-                    placeholderText: "Enter headline…"
-                    color: colors.textPrimary
-                    background: Rectangle { color: colors.surface; border.color: colors.border; radius: colors.radiusSm }
-                    onTextChanged: root.headline = text
-                }
-
-                LogTerminal {
-                    visible: root.publishLog.length > 0
-                    width: reviewCol.width
-                    lines: root.publishLog
-                    loading: root.publishing
-                    colors: colors
-                }
-
+                // Header row
                 RowLayout {
-                    width: reviewCol.width
-                    GButton { label: "← Inbox"; ghost: true; enabled: !root.publishing; colors: colors; onClicked: root.screen = "inbox" }
-                    Item { Layout.fillWidth: true }
-                    Row {
-                        spacing: 8
-                        TextField {
-                            width: 180
-                            placeholderText: "Rejection reason…"
-                            color: colors.textPrimary
-                            background: Rectangle { color: colors.surface; border.color: colors.border; radius: colors.radiusSm }
-                            onTextChanged: root.rejectReason = text
-                        }
-                        GButton {
-                            label: "Reject"
-                            danger: true
-                            enabled: root.rejectReason.trim() !== ""
-                            colors: colors
-                            onClicked: {
-                                ghostDrop.rejectSubmission(
-                                    root.selected.ephPub, OUTLET.id, root.rejectReason)
-                                root.screen = "rejected"
-                            }
-                        }
-                        GButton {
-                            label: root.publishing ? "Publishing…" : "Publish → Logos Storage + Logos Blockchain"
-                            enabled: !root.publishing && root.headline.trim() !== ""
-                            colors: colors
-                            onClicked: {
-                                root.publishing = true
-                                root.publishLog = []
-                                ghostDrop.publishDocument(
-                                    root.headline,
-                                    "",   // doc bytes hex — mock for now
-                                    "application/pdf",
-                                    OUTLET.id,
-                                    root.selected || {}
-                                )
-                            }
+                    Layout.fillWidth: true
+                    Repeater {
+                        model: ["Ephemeral Pubkey","Size","Type","Received","Status","Action"]
+                        delegate: Text {
+                            text: modelData; color: "#5c5f66"; font.pixelSize: 9
+                            font.letterSpacing: 1.2; Layout.fillWidth: true
+                            horizontalAlignment: index === 5 ? Text.AlignRight : Text.AlignLeft
                         }
                     }
                 }
-            }
-        }
 
-        // ── Published ─────────────────────────────────────────────
-        Item {
-            visible: root.screen === "published" && root.publishedRecord !== null
-            width: parent.width
-            implicitHeight: visible ? pubCol.implicitHeight : 0
-            Column {
-                id: pubCol
-                width: parent.width
-                spacing: 16
+                ListView {
+                    Layout.fillWidth: true; Layout.fillHeight: true; clip: true; spacing: 4
+                    model: inboxModel
 
-                GAlert {
-                    type: "success"
-                    text: "✓ Document is live — pinned to Logos Storage, anchored on Logos Blockchain, announced via Logos Messaging."
-                    colors: colors; width: parent.width
-                }
+                    delegate: Rectangle {
+                        width: ListView.view.width; height: 44
+                        color: "#2c2e33"; border.color: "#373a40"; border.width: 1; radius: 4
 
-                Rectangle {
-                    width: parent.width
-                    color: colors.surface; border.color: colors.border; radius: colors.radius
-                    padding: 20
-                    implicitHeight: pubContentCol.implicitHeight + 40
-                    Column {
-                        id: pubContentCol
-                        width: parent.width - 40
+                        RowLayout {
+                            anchors.fill: parent; anchors.margins: 10; spacing: 8
+
+                            Text {
+                                text: model.ephPub ? (model.ephPub.slice(0,18) + "…" + model.ephPub.slice(-6)) : ""
+                                color: "#74c0fc"; font.pixelSize: 10; font.family: "Menlo, monospace"
+                                Layout.fillWidth: true
+                            }
+                            Text { text: model.size  || ""; color: "#909296"; font.pixelSize: 10; Layout.minimumWidth: 56 }
+                            Text { text: model.type  || ""; color: "#909296"; font.pixelSize: 10; Layout.minimumWidth: 36 }
+                            Text { text: model.timeAgo || ""; color: "#909296"; font.pixelSize: 10; Layout.minimumWidth: 54 }
+                            Text {
+                                text: model.status || ""
+                                color: model.status === "unread" ? "#0061ff" : "#5c5f66"
+                                font.pixelSize: 9; font.capitalization: Font.AllUppercase
+                                Layout.minimumWidth: 44
+                            }
+                            GButton {
+                                text: "🔓 Decrypt"; small: true
+                                onClicked: {
+                                    root.selectedItem = model
+                                    decryptError = ""
+                                    privKeyInput.text = ""
+                                    root.panel = "decrypt"
+                                }
+                            }
+                        }
+                    }
+
+                    // Empty state
+                    Text {
                         anchors.centerIn: parent
-                        spacing: 12
-                        Text {
-                            text: root.publishedRecord ? root.publishedRecord.headline : ""
-                            color: colors.textPrimary; font { pixelSize: 15; bold: true }
-                            wrapMode: Text.WordWrap; width: parent.width
-                        }
-                        HashDisplay { label: "Logos Storage CID";                   value: root.publishedRecord ? root.publishedRecord.cid    : ""; colors: colors; width: parent.width }
-                        HashDisplay { label: "Document Hash (SHA-256)";             value: root.publishedRecord ? root.publishedRecord.hash   : ""; colors: colors; width: parent.width }
-                        HashDisplay { label: "Logos Blockchain Anchor Transaction"; value: root.publishedRecord ? root.publishedRecord.txHash : ""; colors: colors; width: parent.width }
-                        GButton { label: "← Back to Inbox"; ghost: true; colors: colors; onClicked: { root.selected = null; root.publishedRecord = null; root.screen = "inbox" } }
+                        text: "No submissions yet.\nWaiting on Logos Messaging…"
+                        color: "#5c5f66"; font.pixelSize: 12; horizontalAlignment: Text.AlignHCenter
+                        visible: inboxModel.count === 0
                     }
                 }
+
+                GButton { text: "← Dashboard"; onClicked: root.panel = "dashboard" }
             }
         }
 
-        // ── Rejected ──────────────────────────────────────────────
+        // ── Decrypt ───────────────────────────────────────────────
         Item {
-            visible: root.screen === "rejected"
-            width: parent.width
-            implicitHeight: visible ? rejCol.implicitHeight : 0
-            Column {
-                id: rejCol
-                width: parent.width
-                spacing: 16
-                GAlert { type: "info"; text: "✓ Rejection sent to source via Logos Messaging back-channel keyed to their ephemeral pubkey."; colors: colors; width: parent.width }
-                GButton { label: "← Back to Inbox"; ghost: true; colors: colors; onClicked: { root.selected = null; root.screen = "inbox" } }
+            ScrollView {
+                anchors.fill: parent; contentWidth: parent.width
+                ColumnLayout {
+                    width: parent.width; spacing: 12; padding: 20
+
+                    SectionTitle { text: "Decrypt Submission" }
+
+                    HashDisplay {
+                        label: "Source Ephemeral Pubkey"
+                        value: root.selectedItem ? (root.selectedItem.ephPub || "") : ""
+                        Layout.fillWidth: true
+                    }
+
+                    // Info row
+                    RowLayout {
+                        spacing: 16; Layout.fillWidth: true
+                        Repeater {
+                            model: root.selectedItem ? [
+                                "Received: " + (root.selectedItem.timeAgo || ""),
+                                "Size: " + (root.selectedItem.size || ""),
+                                "Type: " + (root.selectedItem.type || ""),
+                                root.selectedItem.stripped ? "✓ Strip attested" : "⚠ No strip attestation"
+                            ] : []
+                            delegate: Text {
+                                text: modelData; font.pixelSize: 11
+                                color: index === 3 ? (root.selectedItem?.stripped ? "#2f9e44" : "#f59f00") : "#909296"
+                            }
+                        }
+                    }
+
+                    Text {
+                        text: "Outlet Private Key"
+                        color: "#f1f3f5"; font.pixelSize: 13; font.bold: true
+                    }
+                    Text {
+                        text: "Your outlet secp256k1 private key (32 bytes / 64 hex chars). Never leaves this device."
+                        color: "#909296"; font.pixelSize: 11; wrapMode: Text.WordWrap
+                        Layout.fillWidth: true
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true; spacing: 8
+                        TextField {
+                            id: privKeyInput
+                            Layout.fillWidth: true
+                            placeholderText: "64-character hex private key…"
+                            echoMode: showKey.checked ? TextInput.Normal : TextInput.Password
+                            font.family: "Menlo, monospace"; font.pixelSize: 11
+                            background: Rectangle { color: "#2c2e33"; border.color: privKeyInput.activeFocus ? "#0061ff" : "#373a40"; radius: 5 }
+                            color: "#f1f3f5"
+                            onTextChanged: decryptError = ""
+                        }
+                        CheckBox {
+                            id: showKey; text: "Show"
+                            contentItem: Text { text: showKey.text; color: "#909296"; font.pixelSize: 11; leftPadding: showKey.indicator.width + 4 }
+                        }
+                    }
+
+                    RowLayout {
+                        spacing: 8
+                        GButton {
+                            text: "📂 Load key file"
+                            onClicked: keyFileDialog.open()
+                        }
+                        Text { text: "or paste hex above"; color: "#5c5f66"; font.pixelSize: 10 }
+                    }
+
+                    GAlert {
+                        visible: decryptError !== ""
+                        text: "✗ " + decryptError
+                        type: "danger"
+                    }
+
+                    RowLayout {
+                        spacing: 8
+                        GButton { text: "← Inbox"; onClicked: root.panel = "inbox" }
+                        GButton {
+                            text: decrypting ? "Decrypting…" : "🔓 Decrypt Submission"
+                            primary: true; enabled: !decrypting && privKeyInput.text.trim() !== ""
+                            onClicked: {
+                                var key = privKeyInput.text.trim().replace(/^0x/, "")
+                                if (key.length !== 64) { decryptError = "Private key must be 32 bytes (64 hex chars)"; return }
+                                decrypting = true
+                                if (root.selectedItem && root.selectedItem.payloadHex) {
+                                    ghostDrop.decryptSubmission(root.selectedItem.payloadHex, key)
+                                } else {
+                                    // Mock — simulate decryption
+                                    ghostDrop.decryptSubmissionMock(root.selectedItem ? JSON.stringify(root.selectedItem) : "{}", key)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // File dialog for key loading
+            FileDialog {
+                id: keyFileDialog
+                title: "Load Private Key File"
+                nameFilters: ["Key files (*.hex *.key *.pem *.txt)", "All files (*)"]
+                onAccepted: ghostDrop.loadKeyFromFile(fileUrl, function(hex) { privKeyInput.text = hex })
+            }
+        }
+
+        // ── Decrypted ─────────────────────────────────────────────
+        Item {
+            ScrollView {
+                anchors.fill: parent; contentWidth: parent.width
+                ColumnLayout {
+                    width: parent.width; spacing: 12; padding: 20
+
+                    SectionTitle { text: "Decrypted Submission" }
+
+                    GAlert {
+                        type: "success"
+                        text: "✓ ECIES decryption successful · Strip attestation verified · " +
+                              (decryptedEnvelope ? ((decryptedEnvelope.docSize / 1024).toFixed(1) + " KB plaintext") : "")
+                    }
+
+                    // Envelope details
+                    Rectangle {
+                        Layout.fillWidth: true; color: "#2c2e33"
+                        border.color: "#373a40"; radius: 8; height: detailsCol.implicitHeight + 24
+                        ColumnLayout {
+                            id: detailsCol; anchors { fill: parent; margins: 12 }; spacing: 8
+                            SectionTitle { text: "Submission Details"; small: true }
+                            Repeater {
+                                model: decryptedEnvelope ? [
+                                    { label: "Version",       value: decryptedEnvelope.version || "" },
+                                    { label: "Submitted",     value: decryptedEnvelope.ts ? new Date(decryptedEnvelope.ts).toLocaleString() : "" },
+                                    { label: "MIME Type",     value: decryptedEnvelope.mimeType || "" },
+                                    { label: "Document Size", value: decryptedEnvelope.docSize ? ((decryptedEnvelope.docSize/1024).toFixed(1)+" KB") : "" },
+                                ] : []
+                                delegate: RowLayout {
+                                    Layout.fillWidth: true
+                                    Text { text: modelData.label; color: "#909296"; font.pixelSize: 11; Layout.minimumWidth: 110 }
+                                    Text { text: modelData.value; color: "#f1f3f5"; font.pixelSize: 11; Layout.fillWidth: true }
+                                }
+                            }
+                            HashDisplay {
+                                label: "Document Hash (SHA-256)"
+                                value: decryptedEnvelope ? (decryptedEnvelope.docHash || "") : ""
+                                Layout.fillWidth: true
+                            }
+                        }
+                    }
+
+                    // Cover note
+                    Rectangle {
+                        Layout.fillWidth: true; color: "#2c2e33"; border.color: "#373a40"; radius: 8
+                        visible: decryptedEnvelope && decryptedEnvelope.coverNote && decryptedEnvelope.coverNote !== ""
+                        height: coverCol.implicitHeight + 24
+                        ColumnLayout {
+                            id: coverCol; anchors { fill: parent; margins: 12 }; spacing: 8
+                            SectionTitle { text: "Cover Note from Source"; small: true }
+                            Rectangle {
+                                Layout.fillWidth: true; color: "#0d0e12"; border.color: "#373a40"; radius: 5
+                                height: coverText.implicitHeight + 20
+                                Text {
+                                    id: coverText
+                                    anchors { fill: parent; margins: 10 }
+                                    text: decryptedEnvelope ? ("\"" + (decryptedEnvelope.coverNote || "") + "\"") : ""
+                                    color: "#f1f3f5"; font.pixelSize: 12; wrapMode: Text.WordWrap
+                                    lineHeight: 1.6
+                                }
+                            }
+                        }
+                    }
+
+                    // Download
+                    Rectangle {
+                        Layout.fillWidth: true; color: "#2c2e33"; border.color: "#373a40"; radius: 8
+                        height: dlCol.implicitHeight + 24
+                        ColumnLayout {
+                            id: dlCol; anchors { fill: parent; margins: 12 }; spacing: 8
+                            SectionTitle { text: "Download Decrypted File"; small: true }
+                            Text {
+                                text: "Metadata-stripped by the source. Verify content before publishing."
+                                color: "#909296"; font.pixelSize: 11; wrapMode: Text.WordWrap
+                                Layout.fillWidth: true
+                            }
+                            GButton {
+                                text: "⬇ Download File · " + (decryptedEnvelope ? (decryptedEnvelope.docSize/1024).toFixed(1)+" KB" : "")
+                                primary: true
+                                onClicked: {
+                                    if (decryptedEnvelope) {
+                                        ghostDrop.downloadDecryptedFile(
+                                            "submission_" + (root.selectedItem?.id || "doc") + "." +
+                                            (decryptedEnvelope.mimeType === "application/pdf" ? "pdf" : "zip"),
+                                            decryptedEnvelope.mimeType
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Publish
+                    Rectangle {
+                        Layout.fillWidth: true; color: "#2c2e33"; border.color: "#373a40"; radius: 8
+                        height: pubCol.implicitHeight + 24
+                        ColumnLayout {
+                            id: pubCol; anchors { fill: parent; margins: 12 }; spacing: 10
+                            SectionTitle { text: "Publish to Logos Stack"; small: true }
+
+                            TextField {
+                                id: headlineInput
+                                Layout.fillWidth: true
+                                placeholderText: "Enter headline for publication record…"
+                                font.pixelSize: 12
+                                background: Rectangle { color: "#373a40"; border.color: headlineInput.activeFocus ? "#0061ff" : "#4a4d55"; radius: 5 }
+                                color: "#f1f3f5"
+                            }
+
+                            LogTerminal {
+                                id: publishLog
+                                Layout.fillWidth: true; Layout.preferredHeight: 120
+                                visible: publishLog.count > 0
+                            }
+
+                            Rectangle {
+                                id: publishDone; visible: false; Layout.fillWidth: true
+                                color: "rgba(47,158,68,0.1)"; border.color: "rgba(47,158,68,0.25)"; radius: 5; height: pdCol.implicitHeight + 16
+                                ColumnLayout { id: pdCol; anchors { fill: parent; margins: 8 }; spacing: 6
+                                    Text { text: "✓ Pinned to Logos Storage · Anchored on Logos Blockchain · Announced via Logos Messaging"; color: "#2f9e44"; font.pixelSize: 11; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+                                    HashDisplay { id: publishCid; label: "Logos Storage CID"; Layout.fillWidth: true }
+                                    HashDisplay { id: publishTx;  label: "Logos Blockchain Anchor TX"; Layout.fillWidth: true }
+                                    RowLayout {
+                                        Text { text: "Block"; color: "#909296"; font.pixelSize: 11 }
+                                        Text { id: publishBlock; color: "#0061ff"; font.pixelSize: 11; font.family: "Menlo,monospace" }
+                                    }
+                                }
+                            }
+
+                            RowLayout {
+                                spacing: 8; Layout.fillWidth: true
+                                GButton { text: "← Inbox"; onClicked: root.panel = "inbox" }
+                                Item { Layout.fillWidth: true }
+                                TextField {
+                                    id: rejectReasonInput
+                                    placeholderText: "Rejection reason…"; font.pixelSize: 11; implicitWidth: 180
+                                    background: Rectangle { color: "#373a40"; border.color: rejectReasonInput.activeFocus ? "#e03131" : "#4a4d55"; radius: 5 }
+                                    color: "#f1f3f5"
+                                }
+                                GButton {
+                                    text: "Reject"; danger: true
+                                    enabled: rejectReasonInput.text.trim() !== "" && !publishing
+                                    onClicked: {
+                                        ghostDrop.rejectSubmission(root.selectedItem?.ephPub || "", rejectReasonInput.text.trim())
+                                        root.panel = "inbox"
+                                    }
+                                }
+                                GButton {
+                                    text: publishing ? "Publishing…" : "Publish → Logos Storage + Logos Blockchain"
+                                    primary: true
+                                    enabled: !publishing && headlineInput.text.trim() !== ""
+                                    onClicked: {
+                                        publishing = true
+                                        publishDone.visible = false
+                                        publishLog.clear()
+                                        ghostDrop.publishDocument(
+                                            headlineInput.text.trim(),
+                                            decryptedEnvelope?.docHash || "",
+                                            decryptedEnvelope?.mimeType || "application/pdf",
+                                            ghostDrop.outletId,
+                                            JSON.stringify(decryptedEnvelope || {})
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }

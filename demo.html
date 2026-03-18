@@ -280,22 +280,85 @@
 
         <!-- OUTLET VIEW -->
         <div id="view-outlet" class="hidden">
-          <div class="section-title">Outlet Dashboard</div>
-          <div class="section-sub">Zero Knowledge Reports</div>
-          <div class="card" style="margin-bottom:14px;">
-            <div class="field-row"><span class="field-label">Outlet</span><span class="field-val">Zero Knowledge Reports</span></div>
-            <div class="field-row"><span class="field-label">Logos Messaging Topic</span><span style="font-family:monospace;font-size:10px;color:#909296">/logos-drop/1/sub/outlet_3</span></div>
-            <div class="field-row"><span class="field-label">Staked Bond</span><span style="color:#0061ff;font-weight:600">31,000 NOM</span></div>
-            <div class="field-row" style="border:none"><span class="field-label">Publications</span><span class="field-val">112</span></div>
+
+          <!-- Dashboard -->
+          <div id="outlet-dashboard">
+            <div class="section-title">Outlet Dashboard</div>
+            <div class="section-sub">Zero Knowledge Reports</div>
+            <div class="card" style="margin-bottom:14px;">
+              <div class="field-row"><span class="field-label">Outlet</span><span class="field-val">Zero Knowledge Reports</span></div>
+              <div class="field-row"><span class="field-label">Logos Messaging Topic</span><span style="font-family:monospace;font-size:10px;color:#909296">/logos-drop/1/sub/outlet_3</span></div>
+              <div class="field-row"><span class="field-label">Staked Bond</span><span style="color:#0061ff;font-weight:600">31,000 NOM</span></div>
+              <div class="field-row" style="border:none"><span class="field-label">Publications</span><span class="field-val">112</span></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+              <div class="dot dot-green" style="animation:pulse 1.8s infinite"></div>
+              <span style="font-size:12px;color:#909296;">Logos Messaging filter active — subscribed to submission topic</span>
+            </div>
+            <div class="card">
+              <div style="font-size:12px;font-weight:600;margin-bottom:12px;">Encrypted Inbox (3 submissions)</div>
+              <div id="inbox-list"></div>
+            </div>
           </div>
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
-            <div class="dot dot-green" style="animation:pulse 1.8s infinite"></div>
-            <span style="font-size:12px;color:#909296;">Logos Messaging filter active — subscribed to submission topic</span>
+
+          <!-- Decrypt screen -->
+          <div id="outlet-decrypt" class="hidden">
+            <div class="section-title">Decrypt Submission</div>
+            <div class="card" style="margin-bottom:12px;">
+              <div style="font-size:11px;color:#74c0fc;font-family:monospace;margin-bottom:12px;word-break:break-all;" id="decrypt-ephem-label"></div>
+              <div style="font-size:12px;font-weight:600;margin-bottom:6px;">Outlet Private Key</div>
+              <div style="font-size:11px;color:#909296;margin-bottom:10px;">Your secp256k1 private key (32 bytes / 64 hex chars). Never leaves your browser — decryption is local.</div>
+              <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center;">
+                <input type="password" id="privkey-input" placeholder="64-character hex private key — or any 64 hex chars for demo…" style="flex:1;font-family:monospace;font-size:11px;" oninput="document.getElementById('decrypt-error').classList.add('hidden')">
+                <button class="btn btn-ghost" style="font-size:11px;padding:7px 12px;flex-shrink:0;" onclick="togglePrivKey(this)">Show</button>
+              </div>
+              <div style="display:flex;gap:8px;margin-bottom:14px;align-items:center;">
+                <button class="btn btn-ghost" style="font-size:11px;padding:7px 12px;" onclick="document.getElementById('key-file-input').click()">📂 Load key file</button>
+                <span style="font-size:10px;color:#5c5f66;">or paste hex above</span>
+                <input type="file" id="key-file-input" class="hidden" onchange="loadKeyFile(event)">
+              </div>
+              <div id="decrypt-error" class="hidden alert alert-warning" style="margin-bottom:12px;"></div>
+              <div style="display:flex;gap:8px;">
+                <button class="btn btn-ghost" onclick="outletPanel('dashboard')">← Inbox</button>
+                <button class="btn btn-primary" id="btn-decrypt" onclick="runDecrypt()">🔓 Decrypt Submission</button>
+              </div>
+            </div>
           </div>
-          <div class="card">
-            <div style="font-size:12px;font-weight:600;margin-bottom:12px;">Encrypted Inbox (3 submissions)</div>
-            <div id="inbox-list"></div>
+
+          <!-- Decrypted view -->
+          <div id="outlet-decrypted" class="hidden">
+            <div class="section-title">Decrypted Submission</div>
+            <div class="alert alert-success" style="margin-bottom:14px;" id="decrypt-ok-msg"></div>
+            <div class="card" style="margin-bottom:12px;">
+              <div style="font-size:12px;font-weight:600;margin-bottom:10px;">Submission Details</div>
+              <div id="decrypted-fields"></div>
+            </div>
+            <div class="card" id="cover-note-card" style="margin-bottom:12px;display:none;">
+              <div style="font-size:12px;font-weight:600;margin-bottom:8px;">Cover Note from Source</div>
+              <div id="cover-note-text" style="font-family:monospace;font-size:12px;color:#f1f3f5;line-height:1.7;background:#0d0e12;padding:14px;border:1px solid #373a40;border-radius:5px;"></div>
+            </div>
+            <div class="card" style="margin-bottom:12px;">
+              <div style="font-size:12px;font-weight:600;margin-bottom:6px;">Download Decrypted File</div>
+              <div style="font-size:11px;color:#909296;margin-bottom:12px;">Metadata has been stripped by the source. Download and verify before publishing.</div>
+              <button class="btn btn-primary" id="btn-download-file" onclick="downloadDecryptedFile()">⬇ Download File</button>
+            </div>
+            <div class="card">
+              <div style="font-size:12px;font-weight:600;margin-bottom:8px;">Publish to Logos Stack</div>
+              <input type="text" id="publish-headline" placeholder="Enter headline for publication record…" style="margin-bottom:10px;">
+              <div id="publish-log" class="log-box hidden"></div>
+              <div id="publish-done" class="hidden">
+                <div class="alert alert-success" style="margin-bottom:10px;">✓ Pinned to Logos Storage · Anchored on Logos Blockchain · Announced via Logos Messaging</div>
+                <div id="publish-hashes"></div>
+              </div>
+              <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center;">
+                <button class="btn btn-ghost" onclick="outletPanel('dashboard')">← Inbox</button>
+                <input type="text" id="reject-reason" placeholder="Rejection reason…" style="width:170px;">
+                <button class="btn btn-ghost" style="border-color:rgba(224,49,49,0.4);color:#e03131;" onclick="runRejectDemo()">Reject</button>
+                <button class="btn btn-primary" id="btn-publish" onclick="runPublish()">Publish → Logos Storage + Logos Blockchain</button>
+              </div>
+            </div>
           </div>
+
         </div>
 
         <!-- READER VIEW -->
@@ -476,20 +539,152 @@ function resetSource(){
   goStep(0);
 }
 
+// Outlet sub-panels
+const INBOX_ITEMS=[
+  {id:"sub_a",ephPub:rHex(48),size:"2.4 MB",type:"PDF",ts:Date.now()-7200000,status:"unread",stripped:true},
+  {id:"sub_b",ephPub:rHex(48),size:"847 KB",type:"PDF",ts:Date.now()-64800000,status:"unread",stripped:true},
+  {id:"sub_c",ephPub:rHex(48),size:"5.1 MB",type:"ZIP",ts:Date.now()-259200000,status:"read",stripped:true},
+];
+let selectedInboxItem=null, decryptedMeta=null, decryptedFileBytes=null;
+
+function outletPanel(panel){
+  ["outlet-dashboard","outlet-decrypt","outlet-decrypted"].forEach(id=>{
+    document.getElementById(id).classList.add("hidden");
+  });
+  document.getElementById("outlet-"+panel).classList.remove("hidden");
+}
+
 function renderInbox(){
-  const items=[
-    {ephPub:rHex(48),size:"2.4 MB",type:"PDF",ts:Date.now()-7200000,status:"unread"},
-    {ephPub:rHex(48),size:"847 KB",type:"PDF",ts:Date.now()-64800000,status:"unread"},
-    {ephPub:rHex(48),size:"5.1 MB",type:"ZIP",ts:Date.now()-259200000,status:"read"},
-  ];
-  document.getElementById("inbox-list").innerHTML=items.map(item=>`
-    <div style="display:grid;grid-template-columns:1fr 60px 50px 72px 60px;gap:8px;padding:9px 0;border-bottom:1px solid #373a40;align-items:center;font-size:11px;">
+  outletPanel("dashboard");
+  document.getElementById("inbox-list").innerHTML=INBOX_ITEMS.map(item=>`
+    <div style="display:grid;grid-template-columns:1fr 60px 50px 72px 55px 80px;gap:6px;padding:9px 0;border-bottom:1px solid #373a40;align-items:center;font-size:11px;">
       <span style="font-family:monospace;color:#74c0fc;">${truncate(item.ephPub)}</span>
       <span style="color:#909296">${item.size}</span>
       <span style="color:#909296">${item.type}</span>
       <span style="color:#909296">${fmtAgo(item.ts)}</span>
       <span class="badge ${item.status==="unread"?"badge-blue":""}" style="${item.status==="read"?"background:#373a40;color:#5c5f66":""}">${item.status}</span>
+      <button class="btn btn-ghost" style="font-size:10px;padding:4px 8px;" onclick="openDecrypt('${item.id}')">🔓 Decrypt</button>
     </div>`).join("");
+}
+
+function openDecrypt(id){
+  selectedInboxItem=INBOX_ITEMS.find(i=>i.id===id);
+  document.getElementById("decrypt-ephem-label").textContent="ephPub: "+selectedInboxItem.ephPub;
+  document.getElementById("privkey-input").value="";
+  document.getElementById("decrypt-error").classList.add("hidden");
+  document.getElementById("btn-decrypt").disabled=false;
+  document.getElementById("btn-decrypt").textContent="🔓 Decrypt Submission";
+  outletPanel("decrypt");
+}
+
+function togglePrivKey(btn){
+  const inp=document.getElementById("privkey-input");
+  if(inp.type==="password"){inp.type="text";btn.textContent="Hide";}
+  else{inp.type="password";btn.textContent="Show";}
+}
+
+function loadKeyFile(e){
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{ document.getElementById("privkey-input").value=ev.target.result.trim().replace(/-----.*?-----/g,"").replace(/\s/g,""); };
+  reader.readAsText(file);
+}
+
+async function runDecrypt(){
+  const hex=document.getElementById("privkey-input").value.trim().replace(/^0x/,"");
+  const errEl=document.getElementById("decrypt-error");
+  if(!hex){errEl.textContent="⚠ Enter a private key";errEl.classList.remove("hidden");return;}
+  if(hex.length!==64){errEl.textContent="⚠ Must be exactly 64 hex characters (32 bytes)";errEl.classList.remove("hidden");return;}
+  if(!/^[0-9a-fA-F]+$/.test(hex)){errEl.textContent="⚠ Invalid hex — only 0-9 a-f allowed";errEl.classList.remove("hidden");return;}
+  const btn=document.getElementById("btn-decrypt");
+  btn.disabled=true; btn.textContent="Decrypting…";
+  await sleep(600);
+  // Simulate successful ECIES decrypt
+  decryptedMeta={
+    version:"logos-drop/1",
+    submitted:new Date(selectedInboxItem.ts).toLocaleString(),
+    mimeType:selectedInboxItem.type==="PDF"?"application/pdf":"application/zip",
+    docSize:selectedInboxItem.size,
+    docHash:"sha256:"+rHex(64),
+    stripped:selectedInboxItem.stripped,
+    coverNote:"I work in the compliance department. These records show systematic falsification of environmental monitoring reports over 4 years. My identity must be protected — I have a family.",
+  };
+  decryptedFileBytes=new Uint8Array(32);
+  crypto.getRandomValues(decryptedFileBytes);
+  const ext=selectedInboxItem.type==="PDF"?"pdf":"zip";
+  const size=(parseFloat(selectedInboxItem.size)*1024).toFixed(0);
+  document.getElementById("decrypt-ok-msg").textContent=`✓ ECIES decryption successful · Strip attestation verified · ${selectedInboxItem.size} plaintext`;
+  document.getElementById("decrypted-fields").innerHTML=[
+    ["Version",decryptedMeta.version],
+    ["Submitted",decryptedMeta.submitted],
+    ["MIME Type",decryptedMeta.mimeType],
+    ["Document Size",decryptedMeta.docSize],
+    ["Strip Attested",decryptedMeta.stripped?"✓ Yes":"⚠ No"],
+    ["Document Hash",`<span style="font-family:monospace;font-size:10px;color:#74c0fc;word-break:break-all">${decryptedMeta.docHash}</span>`],
+  ].map(([k,v])=>`<div class="field-row"><span class="field-label">${k}</span><span class="field-val">${v}</span></div>`).join("");
+  const coverCard=document.getElementById("cover-note-card");
+  if(decryptedMeta.coverNote){
+    coverCard.style.display="block";
+    document.getElementById("cover-note-text").textContent=`"${decryptedMeta.coverNote}"`;
+  } else { coverCard.style.display="none"; }
+  document.getElementById("btn-download-file").textContent=`⬇ Download ${ext.toUpperCase()} · ${selectedInboxItem.size}`;
+  document.getElementById("publish-headline").value="";
+  document.getElementById("publish-log").innerHTML="";
+  document.getElementById("publish-log").classList.add("hidden");
+  document.getElementById("publish-done").classList.add("hidden");
+  outletPanel("decrypted");
+}
+
+function downloadDecryptedFile(){
+  if(!selectedInboxItem) return;
+  const ext=selectedInboxItem.type==="PDF"?"pdf":"zip";
+  const mime=selectedInboxItem.type==="PDF"?"application/pdf":"application/zip";
+  const blob=new Blob([decryptedFileBytes||new Uint8Array(8)],{type:mime});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url; a.download=`submission_${selectedInboxItem.id}_stripped.${ext}`; a.click();
+  URL.revokeObjectURL(url);
+}
+
+async function runPublish(){
+  const headline=document.getElementById("publish-headline").value.trim();
+  if(!headline){alert("Enter a headline first");return;}
+  const btn=document.getElementById("btn-publish");
+  btn.disabled=true; btn.textContent="Publishing…";
+  const log=document.getElementById("publish-log");
+  log.innerHTML=""; log.classList.remove("hidden");
+  const lines=[
+    ["► Using decrypted document payload…","log-dim"],
+    [`  size: ${selectedInboxItem.size} · type: ${decryptedMeta.mimeType}`,"log-accent"],
+    ["► Pinning to Logos Storage network…","log-dim"],
+    [`  CID: Qm${rB58(44)}`,"log-success"],
+    ["  upload: 100% · 5-node marketplace request","log-accent"],
+    ["► Computing SHA-256 hash…","log-dim"],
+    [`  ${decryptedMeta.docHash.slice(0,42)}…`,"log-accent"],
+    ["► Anchoring to Logos Blockchain…","log-dim"],
+    [`  tx: 0x${rHex(64)}`,"log-success"],
+    [`  block: ${(848000+Math.floor(Math.random()*1000)).toLocaleString()}`,"log-accent"],
+    ["► Broadcasting via Logos Messaging…","log-dim"],
+    ["  ✓ Announced on reader topic","log-success"],
+    ["► Done. Document is live and tamper-evident.","log-success"],
+  ];
+  for(const [msg,cls] of lines){ await sleep(280); log.innerHTML+=`<div class="${cls}">${msg}</div>`; log.scrollTop=log.scrollHeight; }
+  const cid=`Qm${rB58(44)}`;
+  const txHash=`0x${rHex(64)}`;
+  document.getElementById("publish-hashes").innerHTML=[
+    ["Logos Storage CID",`<span style="font-family:monospace;font-size:10px;color:#74c0fc">${cid}</span>`],
+    ["Document Hash",`<span style="font-family:monospace;font-size:10px;color:#909296">${decryptedMeta.docHash.slice(0,42)}…</span>`],
+    ["Logos Blockchain Anchor",`<span style="font-family:monospace;font-size:10px;color:#74c0fc">${txHash.slice(0,42)}…</span>`],
+  ].map(([k,v])=>`<div class="field-row" style="border:none;padding:4px 0"><span class="field-label">${k}</span><span>${v}</span></div>`).join("");
+  document.getElementById("publish-done").classList.remove("hidden");
+  btn.disabled=false; btn.textContent="Published ✓";
+}
+
+function runRejectDemo(){
+  const reason=document.getElementById("reject-reason").value.trim();
+  if(!reason){alert("Enter a rejection reason");return;}
+  alert(`✓ Rejection sent via Logos Messaging back-channel to source ephemeral key.\nReason: "${reason}"\n\nSource will receive this on their next poll.`);
+  outletPanel("dashboard");
 }
 
 function renderReader(filterTag){
