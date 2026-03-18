@@ -57,6 +57,8 @@ const injectStyles = () => {
       --red-soft: rgba(201,42,42,0.06);
       --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
     }
+    :root, [data-theme="dark"] { color-scheme: dark; }
+    [data-theme="light"] { color-scheme: light; }
     body { font-family: 'Plus Jakarta Sans', -apple-system, sans-serif; background: var(--bg); color: var(--text); }
     ::-webkit-scrollbar { width: 5px; }
     ::-webkit-scrollbar-track { background: transparent; }
