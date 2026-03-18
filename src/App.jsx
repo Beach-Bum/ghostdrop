@@ -239,14 +239,14 @@ const LogTerminal = ({ lines, loading }) => (
   </div>
 );
 
-const StepBar = ({ steps, current }) => (
-  <div style={{ display:"flex", gap:6, marginBottom:28, flexWrap:"wrap" }}>
+const StepBar = ({ steps, current, compact }) => (
+  <div style={{ display:"flex", gap:compact?4:6, marginBottom:compact?0:28, flexWrap:"wrap" }}>
     {steps.map((s,i) => (
-      <div key={i} className={`step-pill ${i<current?"done":i===current?"active":"pending"}`}>
+      <div key={i} className={`step-pill ${i<current?"done":i===current?"active":"pending"}`} style={compact?{padding:"4px 10px",fontSize:12}:undefined}>
         {i < current ? (
-          <svg width={14} height={14} viewBox="0 0 14 14"><path d="M2.5 7L5.5 10L11.5 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>
+          <svg width={compact?12:14} height={compact?12:14} viewBox="0 0 14 14"><path d="M2.5 7L5.5 10L11.5 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>
         ) : (
-          <span style={{ width:18, height:18, borderRadius:"50%", background:"currentColor", opacity:0.15, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:700 }}>
+          <span style={{ width:compact?14:18, height:compact?14:18, borderRadius:"50%", background:"currentColor", opacity:0.15, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:compact?9:11, fontWeight:700 }}>
             <span style={{ color:"currentColor", opacity:7 }}>{i+1}</span>
           </span>
         )}
@@ -273,8 +273,9 @@ const Alert = ({ type="info", children }) => {
 // ─── Source View ──────────────────────────────────────────────────
 const STEPS_SRC = ["Upload", "Strip", "Outlet", "Submit", "Receipt"];
 
-function SourceView() {
-  const [step, setStep] = useState(0);
+function SourceView({ onStepChange }) {
+  const [step, _setStep] = useState(0);
+  const setStep = (v) => { _setStep(v); onStepChange?.(v); };
   const [file, setFile] = useState(null);
   const [stripping, setStripping] = useState(false);
   const [stripDone, setStripDone] = useState(false);
@@ -345,8 +346,7 @@ function SourceView() {
 
   return (
     <div className="fade-up">
-      <SectionTitle children="Submit a Document" sub="Your document is processed entirely in your browser. Nothing leaves until you submit." />
-      <StepBar steps={STEPS_SRC} current={step} />
+      <div style={{ fontSize:13, color:"var(--text-2)", marginBottom:20 }}>Your document is processed entirely in your browser. Nothing leaves until you submit.</div>
 
       {/* Step 0 — Upload */}
       {step === 0 && (
@@ -866,6 +866,7 @@ const getInitialTheme = () => {
 export default function App() {
   const [view, setView] = useState("source");
   const [theme, setTheme] = useState(getInitialTheme);
+  const [sourceStep, setSourceStep] = useState(0);
   useEffect(() => { injectStyles(); }, []);
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -945,16 +946,17 @@ export default function App() {
         </div>
 
         {/* Top bar */}
-        <div className="gd-topbar" style={{ height:56, display:"flex", alignItems:"center", padding:"0 28px", borderBottom:"1px solid var(--border)", background:"var(--sidebar)", flexShrink:0 }}>
-          <span style={{ fontSize:15, fontWeight:600, color:"var(--text)" }}>
+        <div className="gd-topbar" style={{ minHeight:56, display:"flex", alignItems:"center", padding:"12px 28px", borderBottom:"1px solid var(--border)", background:"var(--sidebar)", flexShrink:0, gap:20, flexWrap:"wrap" }}>
+          <span style={{ fontSize:15, fontWeight:600, color:"var(--text)", flexShrink:0 }}>
             {NAV.find(n=>n.id===view)?.label}
           </span>
+          {view === "source" && <StepBar steps={STEPS_SRC} current={sourceStep} compact />}
         </div>
 
         {/* Scrollable content */}
         <div className="gd-content" style={{ flex:1, overflowY:"auto", padding:"28px" }}>
           <div style={{ maxWidth:720 }}>
-            {view === "source" && <SourceView />}
+            {view === "source" && <SourceView onStepChange={setSourceStep} />}
             {view === "outlet" && <OutletView />}
             {view === "reader" && <ReaderView />}
           </div>
