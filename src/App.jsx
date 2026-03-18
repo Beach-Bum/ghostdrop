@@ -70,7 +70,7 @@ const injectStyles = () => {
     .gd-spin { animation: spin 0.9s linear infinite; }
 
     /* Buttons — min 44px touch target (WCAG 2.5.5) */
-    .btn { cursor: pointer; border: none; border-radius: var(--radius-sm); font-family: inherit; font-size: 14px; font-weight: 600; padding: 10px 20px; min-height: 40px; transition: all 0.15s ease; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn { cursor: pointer; border: none; border-radius: var(--radius-sm); font-family: inherit; font-size: 14px; font-weight: 600; padding: 10px 20px; min-height: 44px; transition: all 0.15s ease; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
     .btn:disabled { opacity: 0.4; cursor: not-allowed; }
     .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     .btn-primary { background: var(--accent); color: white; }
@@ -79,7 +79,7 @@ const injectStyles = () => {
     .btn-ghost:hover:not(:disabled) { background: var(--surface2); color: var(--text); border-color: var(--text-3); }
     .btn-danger { background: var(--red-soft); color: var(--red); border: 1px solid transparent; }
     .btn-danger:hover:not(:disabled) { background: rgba(255,107,107,0.18); }
-    .btn-sm { padding: 6px 13px; font-size: 13px; min-height: 32px; }
+    .btn-sm { padding: 8px 14px; font-size: 13px; min-height: 36px; }
 
     /* Inputs — clear focus states */
     .input { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-family: inherit; font-size: 14px; padding: 10px 14px; width: 100%; outline: none; transition: border-color 0.15s, box-shadow 0.15s; }
