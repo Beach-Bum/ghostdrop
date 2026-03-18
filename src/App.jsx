@@ -106,7 +106,7 @@ const injectStyles = () => {
     .step-pill { display: flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 50px; font-size: 13px; font-weight: 500; transition: all 0.15s; }
     .step-pill.done { background: var(--green-soft); color: var(--green); }
     .step-pill.active { background: var(--accent-soft); color: var(--accent); }
-    .step-pill.pending { background: transparent; color: var(--text-3); }
+    .step-pill.pending { background: transparent; color: var(--text-2); }
 
     /* Tag badges */
     .badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 50px; font-size: 12px; font-weight: 500; gap: 4px; }
@@ -246,8 +246,8 @@ const StepBar = ({ steps, current, compact }) => (
         {i < current ? (
           <svg width={compact?12:14} height={compact?12:14} viewBox="0 0 14 14"><path d="M2.5 7L5.5 10L11.5 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>
         ) : (
-          <span style={{ width:compact?14:18, height:compact?14:18, borderRadius:"50%", background:"currentColor", opacity:0.15, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:compact?9:11, fontWeight:700 }}>
-            <span style={{ color:"currentColor", opacity:7 }}>{i+1}</span>
+          <span style={{ width:compact?14:18, height:compact?14:18, borderRadius:"50%", background:"currentColor", opacity:0.25, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:compact?9:11, fontWeight:700 }}>
+            <span style={{ color:"currentColor", opacity:1 }}>{i+1}</span>
           </span>
         )}
         {s}
