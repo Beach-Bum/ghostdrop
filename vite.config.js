@@ -3,55 +3,10 @@ import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
-
-  server: {
-    port: 3000,
-    proxy: {
-      "/codex-api": {
-        target: "http://localhost:8080",
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/codex-api/, ""),
-        configure: (proxy) => {
-          proxy.on("error", (err) => {
-            if (err.code !== "ECONNREFUSED") console.error("[Codex proxy]", err.message);
-          });
-        },
-      },
-      "/nomos-rpc": {
-        target: "http://localhost:3001",
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/nomos-rpc/, ""),
-        configure: (proxy) => {
-          proxy.on("error", (err) => {
-            if (err.code !== "ECONNREFUSED") console.error("[Nomos proxy]", err.message);
-          });
-        },
-      },
-    },
-  },
-
   build: {
     outDir: "dist",
-    sourcemap: true,
     chunkSizeWarningLimit: 2000,
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          waku:   ["@waku/sdk"],
-          codex:  ["@codex-storage/sdk-js", "@codex-storage/sdk-js/browser"],
-          crypto: ["@noble/ciphers", "@noble/curves", "@noble/hashes"],
-          strip:  ["pdf-lib", "exifr", "fflate"],
-          react:  ["react", "react-dom"],
-        },
-      },
-    },
   },
-
-  optimizeDeps: {
-    include: ["react", "react-dom", "@codex-storage/sdk-js", "@codex-storage/sdk-js/browser"],
-    exclude: ["@waku/sdk"],
-  },
-
   define: {
     global: "globalThis",
   },

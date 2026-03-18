@@ -1,0 +1,11 @@
+{
+  "name": "ghostdrop_module",
+  "version": "1.0.0",
+  "description": "GhostDrop — decentralised censorship-resistant whistleblower platform",
+  "author": "GhostDrop",
+  "type": "user",
+  "category": "privacy",
+  "main": "ghostdrop_module_plugin",
+  "dependencies": [],
+  "capabilities": ["file_transfer", "network_access", "logos_messaging"]
+}

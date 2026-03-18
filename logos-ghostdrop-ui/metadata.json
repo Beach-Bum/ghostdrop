@@ -1,0 +1,11 @@
+{
+  "name": "ghostdrop_ui",
+  "version": "1.0.0",
+  "description": "GhostDrop UI — native Qt/QML whistleblower platform for Logos Basecamp",
+  "author": "GhostDrop",
+  "type": "ui",
+  "category": "privacy",
+  "main": "ghostdrop_ui",
+  "dependencies": ["ghostdrop_module"],
+  "capabilities": []
+}
