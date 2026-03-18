@@ -5,7 +5,7 @@ const GhostIcon = ({ size = 22 }) => (
   <span style={{ fontSize: size, lineHeight: 1, display: 'block' }}>👻</span>
 )
 
-// ─── Design tokens (Dropbox dark palette) ────────────────────────
+// ─── Design tokens (WCAG AA accessible, light + dark) ────────────
 const injectStyles = () => {
   if (document.getElementById("gd-styles")) return;
   const s = document.createElement("style");
@@ -13,29 +13,52 @@ const injectStyles = () => {
   s.textContent = `
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --sidebar: #1e1f24;
-      --bg: #25262b;
-      --surface: #2c2e33;
-      --surface2: #373a40;
-      --border: #373a40;
-      --border-light: #2c2e33;
-      --accent: #0061ff;
-      --accent-hover: #0052d9;
-      --accent-soft: rgba(0,97,255,0.12);
+    :root, [data-theme="dark"] {
+      --sidebar: #1a1b1e;
+      --bg: #212226;
+      --surface: #2a2b30;
+      --surface2: #35363c;
+      --border: #3d3e44;
+      --border-light: #2a2b30;
+      --accent: #4d94ff;
+      --accent-hover: #3d84ef;
+      --accent-soft: rgba(77,148,255,0.14);
       --text: #f1f3f5;
-      --text-2: #909296;
-      --text-3: #5c5f66;
-      --green: #2f9e44;
-      --green-soft: rgba(47,158,68,0.12);
-      --amber: #f59f00;
-      --amber-soft: rgba(245,159,0,0.12);
-      --red: #e03131;
-      --red-soft: rgba(224,49,49,0.1);
+      --text-2: #c1c4c9;
+      --text-3: #9a9da3;
+      --green: #51cf66;
+      --green-soft: rgba(81,207,102,0.12);
+      --amber: #fcc419;
+      --amber-soft: rgba(252,196,25,0.12);
+      --red: #ff6b6b;
+      --red-soft: rgba(255,107,107,0.1);
       --radius: 10px;
       --radius-sm: 6px;
       --shadow: 0 1px 3px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3);
     }
+    [data-theme="light"] {
+      --sidebar: #f8f9fa;
+      --bg: #ffffff;
+      --surface: #f1f3f5;
+      --surface2: #e9ecef;
+      --border: #dee2e6;
+      --border-light: #f1f3f5;
+      --accent: #0061ff;
+      --accent-hover: #0052d9;
+      --accent-soft: rgba(0,97,255,0.08);
+      --text: #1a1b1e;
+      --text-2: #495057;
+      --text-3: #6c7178;
+      --green: #2f9e44;
+      --green-soft: rgba(47,158,68,0.08);
+      --amber: #e67700;
+      --amber-soft: rgba(230,119,0,0.08);
+      --red: #c92a2a;
+      --red-soft: rgba(201,42,42,0.06);
+      --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+    }
+    :root, [data-theme="dark"] { color-scheme: dark; }
+    [data-theme="light"] { color-scheme: light; }
     body { font-family: 'Plus Jakarta Sans', -apple-system, sans-serif; background: var(--bg); color: var(--text); }
     ::-webkit-scrollbar { width: 5px; }
     ::-webkit-scrollbar-track { background: transparent; }
@@ -48,20 +71,21 @@ const injectStyles = () => {
     .gd-pulse { animation: pulse 1.8s ease-in-out infinite; }
     .gd-spin { animation: spin 0.9s linear infinite; }
 
-    /* Buttons */
-    .btn { cursor: pointer; border: none; border-radius: var(--radius-sm); font-family: inherit; font-size: 14px; font-weight: 500; padding: 9px 18px; transition: all 0.15s ease; display: inline-flex; align-items: center; gap: 7px; }
-    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    /* Buttons — min 44px touch target (WCAG 2.5.5) */
+    .btn { cursor: pointer; border: none; border-radius: var(--radius-sm); font-family: inherit; font-size: 14px; font-weight: 600; padding: 10px 20px; min-height: 44px; transition: all 0.15s ease; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     .btn-primary { background: var(--accent); color: white; }
-    .btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+    .btn-primary:hover:not(:disabled) { background: var(--accent-hover); transform: translateY(-1px); }
     .btn-ghost { background: transparent; color: var(--text-2); border: 1px solid var(--border); }
     .btn-ghost:hover:not(:disabled) { background: var(--surface2); color: var(--text); border-color: var(--text-3); }
     .btn-danger { background: var(--red-soft); color: var(--red); border: 1px solid transparent; }
-    .btn-danger:hover:not(:disabled) { background: rgba(224,49,49,0.18); }
-    .btn-sm { padding: 6px 13px; font-size: 13px; }
+    .btn-danger:hover:not(:disabled) { background: rgba(255,107,107,0.18); }
+    .btn-sm { padding: 8px 14px; font-size: 13px; min-height: 36px; }
 
-    /* Inputs */
-    .input { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-family: inherit; font-size: 14px; padding: 9px 13px; width: 100%; outline: none; transition: border-color 0.15s; }
-    .input:focus { border-color: var(--accent); }
+    /* Inputs — clear focus states */
+    .input { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-family: inherit; font-size: 14px; padding: 10px 14px; width: 100%; outline: none; transition: border-color 0.15s, box-shadow 0.15s; }
+    .input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
     .input::placeholder { color: var(--text-3); }
     textarea.input { resize: vertical; min-height: 90px; line-height: 1.5; }
 
@@ -69,20 +93,22 @@ const injectStyles = () => {
     .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
 
     /* Nav items */
-    .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: var(--radius-sm); cursor: pointer; font-size: 14px; font-weight: 500; color: var(--text-2); transition: all 0.12s; text-decoration: none; user-select: none; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius-sm); cursor: pointer; font-size: 14px; font-weight: 500; color: var(--text-2); transition: all 0.12s; text-decoration: none; user-select: none; }
     .nav-item:hover { background: var(--surface); color: var(--text); }
     .nav-item.active { background: var(--accent-soft); color: var(--accent); }
+    .nav-item:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 
     /* Outlet cards */
     .outlet-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 16px; cursor: pointer; transition: all 0.15s; }
     .outlet-card:hover { border-color: var(--accent); background: var(--accent-soft); }
     .outlet-card.selected { border-color: var(--accent); background: var(--accent-soft); }
+    .outlet-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
     /* Steps */
     .step-pill { display: flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 50px; font-size: 13px; font-weight: 500; transition: all 0.15s; }
     .step-pill.done { background: var(--green-soft); color: var(--green); }
     .step-pill.active { background: var(--accent-soft); color: var(--accent); }
-    .step-pill.pending { background: transparent; color: var(--text-3); }
+    .step-pill.pending { background: transparent; color: var(--text-2); }
 
     /* Tag badges */
     .badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 50px; font-size: 12px; font-weight: 500; gap: 4px; }
@@ -102,16 +128,17 @@ const injectStyles = () => {
     .progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.3s ease; }
 
     /* Terminal log */
-    .log-box { background: #0d0e12; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12.5px; line-height: 1.9; max-height: 200px; overflow-y: auto; }
-    .log-line-accent { color: #4dabf7; }
-    .log-line-dim { color: #5c5f66; }
-    .log-line-success { color: #69db7c; }
-    .log-line-error { color: #ff6b6b; }
-    .log-line-default { color: #adb5bd; }
+    .log-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12.5px; line-height: 1.9; max-height: 200px; overflow-y: auto; }
+    [data-theme="dark"] .log-box, :root .log-box { background: #0d0e12; }
+    .log-line-accent { color: var(--accent); }
+    .log-line-dim { color: var(--text-3); }
+    .log-line-success { color: var(--green); }
+    .log-line-error { color: var(--red); }
+    .log-line-default { color: var(--text-2); }
 
     /* Hash display */
     .hash-box { background: var(--surface2); border-radius: var(--radius-sm); padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-    .hash-value { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 11.5px; color: #74c0fc; word-break: break-all; flex: 1; }
+    .hash-value { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; color: var(--accent); word-break: break-all; flex: 1; }
 
     /* Dot indicator */
     .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
@@ -133,6 +160,15 @@ const injectStyles = () => {
     .risk-high { color: var(--amber); }
     .risk-medium { color: #fab005; }
     .risk-low { color: var(--text-2); }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .gd-sidebar { display: none !important; }
+      .gd-topbar { padding: 0 16px !important; }
+      .gd-content { padding: 16px !important; }
+      .gd-mobile-header { display: flex !important; }
+    }
+    .gd-mobile-header { display: none; }
   `;
   document.head.appendChild(s);
 };
@@ -205,15 +241,15 @@ const LogTerminal = ({ lines, loading }) => (
   </div>
 );
 
-const StepBar = ({ steps, current }) => (
-  <div style={{ display:"flex", gap:6, marginBottom:28, flexWrap:"wrap" }}>
+const StepBar = ({ steps, current, compact }) => (
+  <div style={{ display:"flex", gap:compact?4:6, marginBottom:compact?0:28, flexWrap:"wrap" }}>
     {steps.map((s,i) => (
-      <div key={i} className={`step-pill ${i<current?"done":i===current?"active":"pending"}`}>
+      <div key={i} className={`step-pill ${i<current?"done":i===current?"active":"pending"}`} style={compact?{padding:"4px 10px",fontSize:12}:undefined}>
         {i < current ? (
-          <svg width={14} height={14} viewBox="0 0 14 14"><path d="M2.5 7L5.5 10L11.5 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>
+          <svg width={compact?12:14} height={compact?12:14} viewBox="0 0 14 14"><path d="M2.5 7L5.5 10L11.5 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>
         ) : (
-          <span style={{ width:18, height:18, borderRadius:"50%", background:"currentColor", opacity:0.15, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:700 }}>
-            <span style={{ color:"currentColor", opacity:7 }}>{i+1}</span>
+          <span style={{ width:compact?14:18, height:compact?14:18, borderRadius:"50%", background:"currentColor", opacity:0.25, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:compact?9:11, fontWeight:700 }}>
+            <span style={{ color:"currentColor", opacity:1 }}>{i+1}</span>
           </span>
         )}
         {s}
@@ -239,8 +275,9 @@ const Alert = ({ type="info", children }) => {
 // ─── Source View ──────────────────────────────────────────────────
 const STEPS_SRC = ["Upload", "Strip", "Outlet", "Submit", "Receipt"];
 
-function SourceView() {
-  const [step, setStep] = useState(0);
+function SourceView({ onStepChange }) {
+  const [step, _setStep] = useState(0);
+  const setStep = (v) => { _setStep(v); onStepChange?.(v); };
   const [file, setFile] = useState(null);
   const [stripping, setStripping] = useState(false);
   const [stripDone, setStripDone] = useState(false);
@@ -287,14 +324,14 @@ function SourceView() {
     addLog("► ECIES encrypting document payload…", "dim");
     await sleep(800);
     addLog(`  payload: ${Math.floor((file?.size||40000)/1024) + 24} KB encrypted`, "success");
-    addLog("► Connecting to Waku p2p network…", "dim");
+    addLog("► Connecting to Logos Messaging p2p network…", "dim");
     await sleep(900);
     addLog(`  peers: 7 connected`, "accent");
     addLog(`► Pushing to ${selectedOutlet?.topic}…`, "dim");
     await sleep(1100);
     const msgId = rHex(32);
     addLog(`  msgId: ${msgId}`, "success");
-    addLog("► Transmission complete via Waku gossip", "success");
+    addLog("► Transmission complete via Logos Messaging gossip", "success");
     setReceipt({ msgId, outletName: selectedOutlet?.name, ephPub, mnemonic: genMnemonic(), docHash: `sha256:${rHex(64)}`, ts: Date.now() });
     setSubmitting(false);
     setStep(4);
@@ -311,8 +348,7 @@ function SourceView() {
 
   return (
     <div className="fade-up">
-      <SectionTitle children="Submit a Document" sub="Your document is processed entirely in your browser. Nothing leaves until you submit." />
-      <StepBar steps={STEPS_SRC} current={step} />
+      <div style={{ fontSize:13, color:"var(--text-2)", marginBottom:20 }}>Your document is processed entirely in your browser. Nothing leaves until you submit.</div>
 
       {/* Step 0 — Upload */}
       {step === 0 && (
@@ -334,7 +370,7 @@ function SourceView() {
             )}
           </div>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:16 }}>
-            <button className="btn btn-ghost btn-sm" onClick={()=>handleFile(new File([new TextEncoder().encode("DEMO CONFIDENTIAL MEMO")], "demo_memo.txt",{type:"text/plain"}))}>Load demo file</button>
+            <button className="btn btn-ghost btn-sm" onClick={()=>handleFile(new File(["DEMO CONFIDENTIAL MEMO — Internal use only. This document contains sensitive operational data that should not be distributed outside the organization. Generated for GhostDrop demonstration purposes."], "demo_memo.txt",{type:"text/plain"}))}>Load demo file</button>
             {file && <button className="btn btn-primary" onClick={()=>setStep(1)}>Continue to Strip →</button>}
           </div>
         </div>
@@ -349,7 +385,7 @@ function SourceView() {
                 <div style={{ fontSize:14, fontWeight:600 }}>{file?.name}</div>
                 <div style={{ fontSize:13, color:"var(--text-2)", marginTop:2 }}>{(file?.size/1024).toFixed(1)} KB · {file?.type||"unknown"}</div>
               </div>
-              <span className="badge badge-amber">Needs strip</span>
+              <span className={`badge ${stripDone ? "badge-green" : "badge-amber"}`}>{stripDone ? "Stripped" : "Needs strip"}</span>
             </div>
 
             {!stripping && !stripDone && (
@@ -409,7 +445,7 @@ function SourceView() {
         <div>
           <div style={{ marginBottom:16 }}>
             <div style={{ fontSize:13, color:"var(--text-2)", marginBottom:14 }}>
-              Outlets are registered on Nomos with a credibility stake. Your submission is encrypted — only the selected outlet can decrypt it.
+              Outlets are registered on Logos Blockchain with a credibility stake. Your submission is encrypted — only the selected outlet can decrypt it.
             </div>
             <div style={{ display:"flex", flexDirection:"column", gap:10, marginBottom:20 }}>
               {outlets.map(o => (
@@ -455,7 +491,7 @@ function SourceView() {
                 ["Metadata stripped", `✓ ${stripFields.length} fields removed`],
                 ["Outlet", selectedOutlet?.name],
                 ["Encryption", "ECIES · secp256k1 + AES-256-GCM"],
-                ["Your IP visible to outlet", "No — Waku gossip protocol"],
+                ["Your IP visible to outlet", "No — Logos Messaging gossip protocol"],
                 ["Identity linked", "No — ephemeral key only"],
               ].map(([l,v]) => (
                 <div key={l} style={{ display:"flex", justifyContent:"space-between", padding:"10px 0", borderBottom:"1px solid var(--border-light)", fontSize:14, gap:16 }}>
@@ -480,7 +516,7 @@ function SourceView() {
       {/* Step 4 — Receipt */}
       {step === 4 && receipt && (
         <div className="fade-up">
-          <Alert type="success">✓ Delivered to <strong>{receipt.outletName}</strong> via Waku · Metadata stripped · End-to-end encrypted</Alert>
+          <Alert type="success">✓ Delivered to <strong>{receipt.outletName}</strong> via Logos Messaging · Metadata stripped · End-to-end encrypted</Alert>
 
           <div className="card" style={{ marginBottom:14 }}>
             <div style={{ fontSize:15, fontWeight:600, marginBottom:4 }}>Your Claim Key</div>
@@ -497,12 +533,12 @@ function SourceView() {
             <div style={{ fontSize:14, fontWeight:600, marginBottom:12 }}>Submission Details</div>
             <HashDisplay value={receipt.ephPub}   label="Ephemeral Public Key" />
             <HashDisplay value={receipt.docHash}  label="Document Hash (SHA-256)" />
-            <HashDisplay value={receipt.msgId}    label="Waku Message ID" />
+            <HashDisplay value={receipt.msgId}    label="Logos Messaging ID" />
           </div>
 
           <div className="card" style={{ marginBottom:20 }}>
             <div style={{ fontSize:14, fontWeight:600, marginBottom:6 }}>Back-channel</div>
-            <div style={{ fontSize:13, color:"var(--text-2)", marginBottom:12 }}>Poll the Waku Store for outlet responses. Passive — no connection kept open.</div>
+            <div style={{ fontSize:13, color:"var(--text-2)", marginBottom:12 }}>Poll the Logos Messaging Store for outlet responses. Passive — no connection kept open.</div>
             {backMsgs.length > 0 ? backMsgs.map((m,i) => (
               <div key={i} style={{ background:"var(--surface2)", borderRadius:"var(--radius-sm)", padding:"12px 14px" }}>
                 <div style={{ fontSize:12, color:"var(--text-3)", marginBottom:4 }}>{fmtAgo(m.ts)}</div>
@@ -511,7 +547,7 @@ function SourceView() {
             )) : (
               <div style={{ display:"flex", gap:10, alignItems:"center" }}>
                 <button className="btn btn-ghost btn-sm" disabled={polling} onClick={pollBack}>
-                  {polling ? <><Spinner size={13}/> Polling Waku Store…</> : "Check for reply"}
+                  {polling ? <><Spinner size={13}/> Polling Logos Messaging Store…</> : "Check for reply"}
                 </button>
                 <span style={{ fontSize:13, color:"var(--text-3)" }}>No messages yet</span>
               </div>
@@ -554,13 +590,13 @@ function OutletView() {
     await sleep(600); addLog("  ✓ Decryption successful","success");
     addLog("► Verifying strip attestation…","dim");
     await sleep(400); addLog("  ✓ Clean — 7 fields removed","success");
-    addLog("► Uploading to Codex network…","dim");
+    addLog("► Uploading to Logos Storage network…","dim");
     const cid = `Qm${rB58(44)}`;
     await sleep(1800); addLog(`  CID: ${cid}`, "accent");
-    addLog("► Anchoring to Nomos chain…","dim");
+    addLog("► Anchoring to Logos Blockchain…","dim");
     const txHash = `0x${rHex(64)}`;
     await sleep(2200); addLog(`  tx: ${txHash.slice(0,42)}…`,"accent");
-    addLog("► Broadcasting via Waku…","dim");
+    addLog("► Broadcasting via Logos Messaging…","dim");
     await sleep(600); addLog("  ✓ Announced on reader topic","success");
     addLog("✓ Document is live and tamper-evident.","success");
     const hash = `sha256:${rHex(64)}`;
@@ -583,20 +619,20 @@ function OutletView() {
         <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
           {[
             ["Outlet name","Zero Knowledge Reports"],
-            ["Nomos address",`0x${rHex(40)}`],
+            ["Logos Blockchain address",`0x${rHex(40)}`],
             ["Staked bond","31,000 NOM"],
             ["Total publications","112"],
-            ["Waku topic","/logos-drop/1/sub/outlet_3"],
+            ["Logos Messaging topic","/logos-drop/1/sub/outlet_3"],
           ].map(([l,v]) => (
             <div key={l} style={{ display:"flex", justifyContent:"space-between", padding:"8px 0", borderBottom:"1px solid var(--border-light)", fontSize:14, gap:16 }}>
               <span style={{ color:"var(--text-2)", flexShrink:0 }}>{l}</span>
-              <span style={{ color:"var(--text)", textAlign:"right", wordBreak:"break-all", fontSize:13, fontFamily: l==="Nomos address"||l==="Waku topic" ? "'SF Mono','Fira Code',monospace":"inherit" }}>{v}</span>
+              <span style={{ color:"var(--text)", textAlign:"right", wordBreak:"break-all", fontSize:13, fontFamily: l==="Logos Blockchain address"||l==="Logos Messaging topic" ? "'SF Mono','Fira Code',monospace":"inherit" }}>{v}</span>
             </div>
           ))}
         </div>
       </div>
       <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:20 }}>
-        <Dot status="active"/> <span style={{ fontSize:13, color:"var(--text-2)" }}>Waku filter active — subscribed to submission topic</span>
+        <Dot status="active"/> <span style={{ fontSize:13, color:"var(--text-2)" }}>Logos Messaging filter active — subscribed to submission topic</span>
       </div>
       <button className="btn btn-primary" disabled={loading} onClick={loadInbox}>
         {loading ? <><Spinner/> Loading inbox…</> : "Open Encrypted Inbox"}
@@ -659,7 +695,7 @@ function OutletView() {
             </button>
           </div>
           <button className="btn btn-primary" disabled={publishing||!headline.trim()} onClick={runPublish}>
-            {publishing ? <><Spinner/> Publishing…</> : "Publish to Codex + Nomos"}
+            {publishing ? <><Spinner/> Publishing…</> : "Publish to Logos Storage + Logos Blockchain"}
           </button>
         </div>
       </div>
@@ -668,14 +704,14 @@ function OutletView() {
 
   if (screen === "published" && published) return (
     <div className="fade-up">
-      <Alert type="success">✓ Document is live — pinned to Codex, anchored on Nomos, announced via Waku</Alert>
+      <Alert type="success">✓ Document is live — pinned to Logos Storage, anchored on Logos Blockchain, announced via Logos Messaging</Alert>
       <div className="card">
         <div style={{ fontSize:16, fontWeight:600, marginBottom:16 }}>{published.headline}</div>
-        <HashDisplay value={published.cid}    label="Codex CID" />
+        <HashDisplay value={published.cid}    label="Logos Storage CID" />
         <HashDisplay value={published.hash}   label="Document Hash (SHA-256)" />
-        <HashDisplay value={published.txHash} label="Nomos Anchor Transaction" />
+        <HashDisplay value={published.txHash} label="Logos Blockchain Anchor Tx" />
         <div style={{ display:"flex", justifyContent:"space-between", fontSize:13, color:"var(--text-2)", padding:"10px 0", borderTop:"1px solid var(--border)", marginTop:4 }}>
-          <span>Nomos block</span>
+          <span>Logos Blockchain block</span>
           <span style={{ color:"var(--accent)", fontWeight:500 }}>#{published.block.toLocaleString()}</span>
         </div>
         <button className="btn btn-ghost" style={{ marginTop:14 }} onClick={()=>{ setSelected(null); setPublished(null); setScreen("inbox"); }}>← Back to Inbox</button>
@@ -685,7 +721,7 @@ function OutletView() {
 
   if (screen === "rejected") return (
     <div className="fade-up">
-      <Alert type="info">✓ Rejection sent to source via Waku back-channel keyed to their ephemeral pubkey</Alert>
+      <Alert type="info">✓ Rejection sent to source via Logos Messaging back-channel keyed to their ephemeral pubkey</Alert>
       <button className="btn btn-ghost" onClick={()=>{ setSelected(null); setScreen("inbox"); }}>← Back to Inbox</button>
     </div>
   );
@@ -715,7 +751,7 @@ function ReaderView() {
 
   if (!selected) return (
     <div className="fade-up">
-      <SectionTitle children="Published Documents" sub="Anchored on Nomos · Stored on Codex · Delivered via Waku" />
+      <SectionTitle children="Published Documents" sub="Anchored on Logos Blockchain · Stored on Logos Storage · Delivered via Logos Messaging" />
       <div style={{ display:"flex", gap:8, marginBottom:20, flexWrap:"wrap" }}>
         <button className={`btn btn-sm ${!filter?"btn-primary":"btn-ghost"}`} onClick={()=>setFilter(null)}>All</button>
         {tags.map(t => (
@@ -764,25 +800,25 @@ function ReaderView() {
       <div className="card" style={{ marginBottom:14 }}>
         <div style={{ fontSize:15, fontWeight:600, marginBottom:14 }}>Tamper Verification</div>
         <HashDisplay value={selected.hash}   label="Document Hash (SHA-256)" />
-        <HashDisplay value={selected.cid}    label="Codex CID" />
-        <HashDisplay value={selected.txHash} label="Nomos Anchor Transaction" />
+        <HashDisplay value={selected.cid}    label="Logos Storage CID" />
+        <HashDisplay value={selected.txHash} label="Logos Blockchain Anchor Tx" />
         <div style={{ display:"flex", justifyContent:"space-between", fontSize:13, color:"var(--text-2)", padding:"10px 0", borderTop:"1px solid var(--border)", marginTop:8, marginBottom:14 }}>
           <span>Anchored at block</span>
           <span style={{ fontWeight:500 }}>#{selected.block.toLocaleString()}</span>
         </div>
         {!verified ? (
           <button className="btn btn-ghost" disabled={verifying} onClick={runVerify}>
-            {verifying ? <><Spinner size={14}/> Verifying against Nomos + Codex…</> : "Verify document integrity"}
+            {verifying ? <><Spinner size={14}/> Verifying against Logos Blockchain + Storage…</> : "Verify document integrity"}
           </button>
         ) : (
-          <Alert type="success">✓ Hash verified on Nomos · CID confirmed on Codex · Document unmodified</Alert>
+          <Alert type="success">✓ Hash verified on Logos Blockchain · CID confirmed on Logos Storage · Document unmodified</Alert>
         )}
       </div>
 
       <div className="card">
         <div style={{ fontSize:15, fontWeight:600, marginBottom:6 }}>Tip the Source</div>
         <div style={{ fontSize:13, color:"var(--text-2)", marginBottom:12 }}>
-          Tips are held in Nomos escrow, claimable only with the source's ephemeral private key. Fully anonymous.
+          Tips are held in Logos Blockchain escrow, claimable only with the source's ephemeral private key. Fully anonymous.
         </div>
         <div style={{ display:"flex", justifyContent:"space-between", fontSize:13, color:"var(--text-2)", marginBottom:14, padding:"10px 14px", background:"var(--surface2)", borderRadius:"var(--radius-sm)" }}>
           <span>Current tip pool</span>
@@ -800,7 +836,7 @@ function ReaderView() {
           </div>
         ) : (
           <div>
-            <Alert type="success">✓ {tipped.amount} XMR locked in Nomos escrow · Source can claim anonymously with their 12-word key</Alert>
+            <Alert type="success">✓ {tipped.amount} XMR locked in Logos Blockchain escrow · Source can claim anonymously with their 12-word key</Alert>
             <HashDisplay value={tipped.txHash} label="Escrow Transaction" />
           </div>
         )}
@@ -817,21 +853,34 @@ const NAV = [
 ];
 
 const STATUS_ITEMS = [
-  { label:"Waku",  statusKey:"active" },
-  { label:"Codex", statusKey:"warn"   },
-  { label:"Nomos", statusKey:"warn"   },
+  { label:"Logos Messaging",  statusKey:"active" },
+  { label:"Logos Storage", statusKey:"warn"   },
+  { label:"Logos Blockchain", statusKey:"warn"   },
 ];
 
 // ─── App Root ─────────────────────────────────────────────────────
+const getInitialTheme = () => {
+  const saved = localStorage.getItem("gd-theme");
+  if (saved === "light" || saved === "dark") return saved;
+  return window.matchMedia?.("(prefers-color-scheme: light)").matches ? "light" : "dark";
+};
+
 export default function App() {
   const [view, setView] = useState("source");
+  const [theme, setTheme] = useState(getInitialTheme);
+  const [sourceStep, setSourceStep] = useState(0);
   useEffect(() => { injectStyles(); }, []);
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("gd-theme", theme);
+  }, [theme]);
+  const toggleTheme = () => setTheme(t => t === "dark" ? "light" : "dark");
 
   return (
     <div style={{ display:"flex", height:"100vh", overflow:"hidden", background:"var(--bg)", fontFamily:"'Plus Jakarta Sans',-apple-system,sans-serif" }}>
 
       {/* Sidebar */}
-      <div style={{ width:250, background:"var(--sidebar)", display:"flex", flexDirection:"column", borderRight:"1px solid var(--border)", flexShrink:0 }}>
+      <div className="gd-sidebar" style={{ width:250, background:"var(--sidebar)", display:"flex", flexDirection:"column", borderRight:"1px solid var(--border)", flexShrink:0 }}>
 
         {/* Logo */}
         <div style={{ padding:"20px 18px 14px", borderBottom:"1px solid var(--border)" }}>
@@ -871,35 +920,45 @@ export default function App() {
             </div>
           ))}
           <div style={{ marginTop:12, padding:"8px 10px", background:"var(--surface)", borderRadius:"var(--radius-sm)", fontSize:11.5, color:"var(--text-3)", lineHeight:1.5 }}>
-            Waku: public fleet · Codex/Nomos: run locally to activate
+            Logos Messaging: public fleet · Storage/Blockchain: run locally to activate
           </div>
+          <button onClick={toggleTheme} className="btn btn-ghost btn-sm" style={{ width:"100%", marginTop:10, justifyContent:"center", fontSize:12 }}>
+            {theme === "dark" ? "☀ Light mode" : "☾ Dark mode"}
+          </button>
         </div>
       </div>
 
       {/* Main content */}
       <div style={{ flex:1, display:"flex", flexDirection:"column", overflow:"hidden" }}>
 
-        {/* Top bar */}
-        <div style={{ height:56, display:"flex", alignItems:"center", padding:"0 28px", borderBottom:"1px solid var(--border)", background:"var(--sidebar)", flexShrink:0, justifyContent:"space-between" }}>
-          <div>
-            <span style={{ fontSize:15, fontWeight:600, color:"var(--text)" }}>
-              {NAV.find(n=>n.id===view)?.label}
-            </span>
-          </div>
-          <div style={{ display:"flex", alignItems:"center", gap:16 }}>
-            {STATUS_ITEMS.map(s => (
-              <div key={s.label} style={{ display:"flex", alignItems:"center", gap:6, fontSize:12.5, color:"var(--text-3)" }}>
-                <Dot status={s.statusKey} />
-                {s.label}
-              </div>
+        {/* Mobile header */}
+        <div className="gd-mobile-header" style={{ height:48, alignItems:"center", padding:"0 16px", borderBottom:"1px solid var(--border)", background:"var(--sidebar)", flexShrink:0, gap:10 }}>
+          <GhostIcon size={18} />
+          <span style={{ fontSize:15, fontWeight:700, color:"var(--text)" }}>GhostDrop</span>
+          <div style={{ marginLeft:"auto", display:"flex", gap:6 }}>
+            <button onClick={toggleTheme} className="btn btn-ghost btn-sm" style={{ padding:"4px 8px", fontSize:12, minHeight:28 }}>
+              {theme === "dark" ? "☀" : "☾"}
+            </button>
+            {NAV.map(n => (
+              <button key={n.id} className={`btn btn-sm ${view===n.id?"btn-primary":"btn-ghost"}`} onClick={()=>setView(n.id)} style={{ padding:"4px 10px", fontSize:12 }}>
+                {n.icon}
+              </button>
             ))}
           </div>
         </div>
 
+        {/* Top bar */}
+        <div className="gd-topbar" style={{ minHeight:56, display:"flex", alignItems:"center", padding:"12px 28px", borderBottom:"1px solid var(--border)", background:"var(--sidebar)", flexShrink:0, gap:20, flexWrap:"wrap" }}>
+          <span style={{ fontSize:15, fontWeight:600, color:"var(--text)", flexShrink:0 }}>
+            {NAV.find(n=>n.id===view)?.label}
+          </span>
+          {view === "source" && <StepBar steps={STEPS_SRC} current={sourceStep} compact />}
+        </div>
+
         {/* Scrollable content */}
-        <div style={{ flex:1, overflowY:"auto", padding:"28px" }}>
+        <div className="gd-content" style={{ flex:1, overflowY:"auto", padding:"28px" }}>
           <div style={{ maxWidth:720 }}>
-            {view === "source" && <SourceView />}
+            {view === "source" && <SourceView onStepChange={setSourceStep} />}
             {view === "outlet" && <OutletView />}
             {view === "reader" && <ReaderView />}
           </div>
