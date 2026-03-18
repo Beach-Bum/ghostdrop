@@ -1,11 +1,4 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { stripMetadata, scanMetadata, formatRisk } from "./services/strip.js";
-import { runOpsecCheck } from "./services/transport.js";
-import * as WakuService from "./services/waku.js";
-import * as NomosService from "./services/nomos.js";
-import { upload as codexUpload, checkNodeHealth as codexHealth } from "./services/codex.js";
-import { checkNodeHealth as nomosHealth } from "./services/nomos.js";
-import { buildSubmissionEnvelope, bytesToHex, privKeyToMnemonic, hexToBytes } from "./services/crypto.js";
 
 // ─── Ghost SVG Logo ───────────────────────────────────────────────
 const GhostIcon = ({ size = 22 }) => (
