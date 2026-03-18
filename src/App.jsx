@@ -133,6 +133,15 @@ const injectStyles = () => {
     .risk-high { color: var(--amber); }
     .risk-medium { color: #fab005; }
     .risk-low { color: var(--text-2); }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .gd-sidebar { display: none !important; }
+      .gd-topbar { padding: 0 16px !important; }
+      .gd-content { padding: 16px !important; }
+      .gd-mobile-header { display: flex !important; }
+    }
+    .gd-mobile-header { display: none; }
   `;
   document.head.appendChild(s);
 };
@@ -287,14 +296,14 @@ function SourceView() {
     addLog("► ECIES encrypting document payload…", "dim");
     await sleep(800);
     addLog(`  payload: ${Math.floor((file?.size||40000)/1024) + 24} KB encrypted`, "success");
-    addLog("► Connecting to Waku p2p network…", "dim");
+    addLog("► Connecting to Logos Messaging p2p network…", "dim");
     await sleep(900);
     addLog(`  peers: 7 connected`, "accent");
     addLog(`► Pushing to ${selectedOutlet?.topic}…`, "dim");
     await sleep(1100);
     const msgId = rHex(32);
     addLog(`  msgId: ${msgId}`, "success");
-    addLog("► Transmission complete via Waku gossip", "success");
+    addLog("► Transmission complete via Logos Messaging gossip", "success");
     setReceipt({ msgId, outletName: selectedOutlet?.name, ephPub, mnemonic: genMnemonic(), docHash: `sha256:${rHex(64)}`, ts: Date.now() });
     setSubmitting(false);
     setStep(4);
@@ -409,7 +418,7 @@ function SourceView() {
         <div>
           <div style={{ marginBottom:16 }}>
             <div style={{ fontSize:13, color:"var(--text-2)", marginBottom:14 }}>
-              Outlets are registered on Nomos with a credibility stake. Your submission is encrypted — only the selected outlet can decrypt it.
+              Outlets are registered on Logos Blockchain with a credibility stake. Your submission is encrypted — only the selected outlet can decrypt it.
             </div>
             <div style={{ display:"flex", flexDirection:"column", gap:10, marginBottom:20 }}>
               {outlets.map(o => (
@@ -455,7 +464,7 @@ function SourceView() {
                 ["Metadata stripped", `✓ ${stripFields.length} fields removed`],
                 ["Outlet", selectedOutlet?.name],
                 ["Encryption", "ECIES · secp256k1 + AES-256-GCM"],
-                ["Your IP visible to outlet", "No — Waku gossip protocol"],
+                ["Your IP visible to outlet", "No — Logos Messaging gossip protocol"],
                 ["Identity linked", "No — ephemeral key only"],
               ].map(([l,v]) => (
                 <div key={l} style={{ display:"flex", justifyContent:"space-between", padding:"10px 0", borderBottom:"1px solid var(--border-light)", fontSize:14, gap:16 }}>
@@ -480,7 +489,7 @@ function SourceView() {
       {/* Step 4 — Receipt */}
       {step === 4 && receipt && (
         <div className="fade-up">
-          <Alert type="success">✓ Delivered to <strong>{receipt.outletName}</strong> via Waku · Metadata stripped · End-to-end encrypted</Alert>
+          <Alert type="success">✓ Delivered to <strong>{receipt.outletName}</strong> via Logos Messaging · Metadata stripped · End-to-end encrypted</Alert>
 
           <div className="card" style={{ marginBottom:14 }}>
             <div style={{ fontSize:15, fontWeight:600, marginBottom:4 }}>Your Claim Key</div>
@@ -497,12 +506,12 @@ function SourceView() {
             <div style={{ fontSize:14, fontWeight:600, marginBottom:12 }}>Submission Details</div>
             <HashDisplay value={receipt.ephPub}   label="Ephemeral Public Key" />
             <HashDisplay value={receipt.docHash}  label="Document Hash (SHA-256)" />
-            <HashDisplay value={receipt.msgId}    label="Waku Message ID" />
+            <HashDisplay value={receipt.msgId}    label="Logos Messaging ID" />
           </div>
 
           <div className="card" style={{ marginBottom:20 }}>
             <div style={{ fontSize:14, fontWeight:600, marginBottom:6 }}>Back-channel</div>
-            <div style={{ fontSize:13, color:"var(--text-2)", marginBottom:12 }}>Poll the Waku Store for outlet responses. Passive — no connection kept open.</div>
+            <div style={{ fontSize:13, color:"var(--text-2)", marginBottom:12 }}>Poll the Logos Messaging Store for outlet responses. Passive — no connection kept open.</div>
             {backMsgs.length > 0 ? backMsgs.map((m,i) => (
               <div key={i} style={{ background:"var(--surface2)", borderRadius:"var(--radius-sm)", padding:"12px 14px" }}>
                 <div style={{ fontSize:12, color:"var(--text-3)", marginBottom:4 }}>{fmtAgo(m.ts)}</div>
@@ -511,7 +520,7 @@ function SourceView() {
             )) : (
               <div style={{ display:"flex", gap:10, alignItems:"center" }}>
                 <button className="btn btn-ghost btn-sm" disabled={polling} onClick={pollBack}>
-                  {polling ? <><Spinner size={13}/> Polling Waku Store…</> : "Check for reply"}
+                  {polling ? <><Spinner size={13}/> Polling Logos Messaging Store…</> : "Check for reply"}
                 </button>
                 <span style={{ fontSize:13, color:"var(--text-3)" }}>No messages yet</span>
               </div>
@@ -554,13 +563,13 @@ function OutletView() {
     await sleep(600); addLog("  ✓ Decryption successful","success");
     addLog("► Verifying strip attestation…","dim");
     await sleep(400); addLog("  ✓ Clean — 7 fields removed","success");
-    addLog("► Uploading to Codex network…","dim");
+    addLog("► Uploading to Logos Storage network…","dim");
     const cid = `Qm${rB58(44)}`;
     await sleep(1800); addLog(`  CID: ${cid}`, "accent");
-    addLog("► Anchoring to Nomos chain…","dim");
+    addLog("► Anchoring to Logos Blockchain…","dim");
     const txHash = `0x${rHex(64)}`;
     await sleep(2200); addLog(`  tx: ${txHash.slice(0,42)}…`,"accent");
-    addLog("► Broadcasting via Waku…","dim");
+    addLog("► Broadcasting via Logos Messaging…","dim");
     await sleep(600); addLog("  ✓ Announced on reader topic","success");
     addLog("✓ Document is live and tamper-evident.","success");
     const hash = `sha256:${rHex(64)}`;
@@ -583,20 +592,20 @@ function OutletView() {
         <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
           {[
             ["Outlet name","Zero Knowledge Reports"],
-            ["Nomos address",`0x${rHex(40)}`],
+            ["Logos Blockchain address",`0x${rHex(40)}`],
             ["Staked bond","31,000 NOM"],
             ["Total publications","112"],
-            ["Waku topic","/logos-drop/1/sub/outlet_3"],
+            ["Logos Messaging topic","/logos-drop/1/sub/outlet_3"],
           ].map(([l,v]) => (
             <div key={l} style={{ display:"flex", justifyContent:"space-between", padding:"8px 0", borderBottom:"1px solid var(--border-light)", fontSize:14, gap:16 }}>
               <span style={{ color:"var(--text-2)", flexShrink:0 }}>{l}</span>
-              <span style={{ color:"var(--text)", textAlign:"right", wordBreak:"break-all", fontSize:13, fontFamily: l==="Nomos address"||l==="Waku topic" ? "'SF Mono','Fira Code',monospace":"inherit" }}>{v}</span>
+              <span style={{ color:"var(--text)", textAlign:"right", wordBreak:"break-all", fontSize:13, fontFamily: l==="Logos Blockchain address"||l==="Logos Messaging topic" ? "'SF Mono','Fira Code',monospace":"inherit" }}>{v}</span>
             </div>
           ))}
         </div>
       </div>
       <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:20 }}>
-        <Dot status="active"/> <span style={{ fontSize:13, color:"var(--text-2)" }}>Waku filter active — subscribed to submission topic</span>
+        <Dot status="active"/> <span style={{ fontSize:13, color:"var(--text-2)" }}>Logos Messaging filter active — subscribed to submission topic</span>
       </div>
       <button className="btn btn-primary" disabled={loading} onClick={loadInbox}>
         {loading ? <><Spinner/> Loading inbox…</> : "Open Encrypted Inbox"}
@@ -659,7 +668,7 @@ function OutletView() {
             </button>
           </div>
           <button className="btn btn-primary" disabled={publishing||!headline.trim()} onClick={runPublish}>
-            {publishing ? <><Spinner/> Publishing…</> : "Publish to Codex + Nomos"}
+            {publishing ? <><Spinner/> Publishing…</> : "Publish to Logos Storage + Logos Blockchain"}
           </button>
         </div>
       </div>
@@ -668,14 +677,14 @@ function OutletView() {
 
   if (screen === "published" && published) return (
     <div className="fade-up">
-      <Alert type="success">✓ Document is live — pinned to Codex, anchored on Nomos, announced via Waku</Alert>
+      <Alert type="success">✓ Document is live — pinned to Logos Storage, anchored on Logos Blockchain, announced via Logos Messaging</Alert>
       <div className="card">
         <div style={{ fontSize:16, fontWeight:600, marginBottom:16 }}>{published.headline}</div>
-        <HashDisplay value={published.cid}    label="Codex CID" />
+        <HashDisplay value={published.cid}    label="Logos Storage CID" />
         <HashDisplay value={published.hash}   label="Document Hash (SHA-256)" />
-        <HashDisplay value={published.txHash} label="Nomos Anchor Transaction" />
+        <HashDisplay value={published.txHash} label="Logos Blockchain Anchor Tx" />
         <div style={{ display:"flex", justifyContent:"space-between", fontSize:13, color:"var(--text-2)", padding:"10px 0", borderTop:"1px solid var(--border)", marginTop:4 }}>
-          <span>Nomos block</span>
+          <span>Logos Blockchain block</span>
           <span style={{ color:"var(--accent)", fontWeight:500 }}>#{published.block.toLocaleString()}</span>
         </div>
         <button className="btn btn-ghost" style={{ marginTop:14 }} onClick={()=>{ setSelected(null); setPublished(null); setScreen("inbox"); }}>← Back to Inbox</button>
@@ -685,7 +694,7 @@ function OutletView() {
 
   if (screen === "rejected") return (
     <div className="fade-up">
-      <Alert type="info">✓ Rejection sent to source via Waku back-channel keyed to their ephemeral pubkey</Alert>
+      <Alert type="info">✓ Rejection sent to source via Logos Messaging back-channel keyed to their ephemeral pubkey</Alert>
       <button className="btn btn-ghost" onClick={()=>{ setSelected(null); setScreen("inbox"); }}>← Back to Inbox</button>
     </div>
   );
@@ -715,7 +724,7 @@ function ReaderView() {
 
   if (!selected) return (
     <div className="fade-up">
-      <SectionTitle children="Published Documents" sub="Anchored on Nomos · Stored on Codex · Delivered via Waku" />
+      <SectionTitle children="Published Documents" sub="Anchored on Logos Blockchain · Stored on Logos Storage · Delivered via Logos Messaging" />
       <div style={{ display:"flex", gap:8, marginBottom:20, flexWrap:"wrap" }}>
         <button className={`btn btn-sm ${!filter?"btn-primary":"btn-ghost"}`} onClick={()=>setFilter(null)}>All</button>
         {tags.map(t => (
@@ -764,25 +773,25 @@ function ReaderView() {
       <div className="card" style={{ marginBottom:14 }}>
         <div style={{ fontSize:15, fontWeight:600, marginBottom:14 }}>Tamper Verification</div>
         <HashDisplay value={selected.hash}   label="Document Hash (SHA-256)" />
-        <HashDisplay value={selected.cid}    label="Codex CID" />
-        <HashDisplay value={selected.txHash} label="Nomos Anchor Transaction" />
+        <HashDisplay value={selected.cid}    label="Logos Storage CID" />
+        <HashDisplay value={selected.txHash} label="Logos Blockchain Anchor Tx" />
         <div style={{ display:"flex", justifyContent:"space-between", fontSize:13, color:"var(--text-2)", padding:"10px 0", borderTop:"1px solid var(--border)", marginTop:8, marginBottom:14 }}>
           <span>Anchored at block</span>
           <span style={{ fontWeight:500 }}>#{selected.block.toLocaleString()}</span>
         </div>
         {!verified ? (
           <button className="btn btn-ghost" disabled={verifying} onClick={runVerify}>
-            {verifying ? <><Spinner size={14}/> Verifying against Nomos + Codex…</> : "Verify document integrity"}
+            {verifying ? <><Spinner size={14}/> Verifying against Logos Blockchain + Storage…</> : "Verify document integrity"}
           </button>
         ) : (
-          <Alert type="success">✓ Hash verified on Nomos · CID confirmed on Codex · Document unmodified</Alert>
+          <Alert type="success">✓ Hash verified on Logos Blockchain · CID confirmed on Logos Storage · Document unmodified</Alert>
         )}
       </div>
 
       <div className="card">
         <div style={{ fontSize:15, fontWeight:600, marginBottom:6 }}>Tip the Source</div>
         <div style={{ fontSize:13, color:"var(--text-2)", marginBottom:12 }}>
-          Tips are held in Nomos escrow, claimable only with the source's ephemeral private key. Fully anonymous.
+          Tips are held in Logos Blockchain escrow, claimable only with the source's ephemeral private key. Fully anonymous.
         </div>
         <div style={{ display:"flex", justifyContent:"space-between", fontSize:13, color:"var(--text-2)", marginBottom:14, padding:"10px 14px", background:"var(--surface2)", borderRadius:"var(--radius-sm)" }}>
           <span>Current tip pool</span>
@@ -800,7 +809,7 @@ function ReaderView() {
           </div>
         ) : (
           <div>
-            <Alert type="success">✓ {tipped.amount} XMR locked in Nomos escrow · Source can claim anonymously with their 12-word key</Alert>
+            <Alert type="success">✓ {tipped.amount} XMR locked in Logos Blockchain escrow · Source can claim anonymously with their 12-word key</Alert>
             <HashDisplay value={tipped.txHash} label="Escrow Transaction" />
           </div>
         )}
@@ -817,9 +826,9 @@ const NAV = [
 ];
 
 const STATUS_ITEMS = [
-  { label:"Waku",  statusKey:"active" },
-  { label:"Codex", statusKey:"warn"   },
-  { label:"Nomos", statusKey:"warn"   },
+  { label:"Logos Messaging",  statusKey:"active" },
+  { label:"Logos Storage", statusKey:"warn"   },
+  { label:"Logos Blockchain", statusKey:"warn"   },
 ];
 
 // ─── App Root ─────────────────────────────────────────────────────
@@ -831,7 +840,7 @@ export default function App() {
     <div style={{ display:"flex", height:"100vh", overflow:"hidden", background:"var(--bg)", fontFamily:"'Plus Jakarta Sans',-apple-system,sans-serif" }}>
 
       {/* Sidebar */}
-      <div style={{ width:250, background:"var(--sidebar)", display:"flex", flexDirection:"column", borderRight:"1px solid var(--border)", flexShrink:0 }}>
+      <div className="gd-sidebar" style={{ width:250, background:"var(--sidebar)", display:"flex", flexDirection:"column", borderRight:"1px solid var(--border)", flexShrink:0 }}>
 
         {/* Logo */}
         <div style={{ padding:"20px 18px 14px", borderBottom:"1px solid var(--border)" }}>
@@ -871,7 +880,7 @@ export default function App() {
             </div>
           ))}
           <div style={{ marginTop:12, padding:"8px 10px", background:"var(--surface)", borderRadius:"var(--radius-sm)", fontSize:11.5, color:"var(--text-3)", lineHeight:1.5 }}>
-            Waku: public fleet · Codex/Nomos: run locally to activate
+            Logos Messaging: public fleet · Storage/Blockchain: run locally to activate
           </div>
         </div>
       </div>
@@ -879,8 +888,21 @@ export default function App() {
       {/* Main content */}
       <div style={{ flex:1, display:"flex", flexDirection:"column", overflow:"hidden" }}>
 
+        {/* Mobile header */}
+        <div className="gd-mobile-header" style={{ height:48, alignItems:"center", padding:"0 16px", borderBottom:"1px solid var(--border)", background:"var(--sidebar)", flexShrink:0, gap:10 }}>
+          <GhostIcon size={18} />
+          <span style={{ fontSize:15, fontWeight:700, color:"var(--text)" }}>GhostDrop</span>
+          <div style={{ marginLeft:"auto", display:"flex", gap:8 }}>
+            {NAV.map(n => (
+              <button key={n.id} className={`btn btn-sm ${view===n.id?"btn-primary":"btn-ghost"}`} onClick={()=>setView(n.id)} style={{ padding:"4px 10px", fontSize:12 }}>
+                {n.icon}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Top bar */}
-        <div style={{ height:56, display:"flex", alignItems:"center", padding:"0 28px", borderBottom:"1px solid var(--border)", background:"var(--sidebar)", flexShrink:0, justifyContent:"space-between" }}>
+        <div className="gd-topbar" style={{ height:56, display:"flex", alignItems:"center", padding:"0 28px", borderBottom:"1px solid var(--border)", background:"var(--sidebar)", flexShrink:0, justifyContent:"space-between" }}>
           <div>
             <span style={{ fontSize:15, fontWeight:600, color:"var(--text)" }}>
               {NAV.find(n=>n.id===view)?.label}
@@ -897,7 +919,7 @@ export default function App() {
         </div>
 
         {/* Scrollable content */}
-        <div style={{ flex:1, overflowY:"auto", padding:"28px" }}>
+        <div className="gd-content" style={{ flex:1, overflowY:"auto", padding:"28px" }}>
           <div style={{ maxWidth:720 }}>
             {view === "source" && <SourceView />}
             {view === "outlet" && <OutletView />}
