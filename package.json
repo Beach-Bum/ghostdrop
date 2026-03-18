@@ -1,6 +1,6 @@
 {
-  "name": "logos-drop",
-  "version": "0.1.0",
+  "name": "ghostdrop",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -24,7 +24,8 @@
   "devDependencies": {
     "@types/react": "^18.3.1",
     "@types/react-dom": "^18.3.1",
-    "@vitejs/plugin-react": "^4.3.4",
-    "vite": "^5.4.19"
-  }
+    "@vitejs/plugin-react": "^6.0.1",
+    "vite": "^8.0.0"
+  },
+  "description": "Decentralised whistleblower platform built on the Logos stack"
 }
