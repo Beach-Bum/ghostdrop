@@ -383,7 +383,7 @@ function SourceView({ onStepChange }) {
                 <div style={{ fontSize:14, fontWeight:600 }}>{file?.name}</div>
                 <div style={{ fontSize:13, color:"var(--text-2)", marginTop:2 }}>{(file?.size/1024).toFixed(1)} KB · {file?.type||"unknown"}</div>
               </div>
-              <span className="badge badge-amber">Needs strip</span>
+              <span className={`badge ${stripDone ? "badge-green" : "badge-amber"}`}>{stripDone ? "Stripped" : "Needs strip"}</span>
             </div>
 
             {!stripping && !stripDone && (
