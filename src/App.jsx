@@ -5,7 +5,7 @@ const GhostIcon = ({ size = 22 }) => (
   <span style={{ fontSize: size, lineHeight: 1, display: 'block' }}>👻</span>
 )
 
-// ─── Design tokens (WCAG AA accessible dark palette) ─────────────
+// ─── Design tokens (WCAG AA accessible, light + dark) ────────────
 const injectStyles = () => {
   if (document.getElementById("gd-styles")) return;
   const s = document.createElement("style");
@@ -13,7 +13,7 @@ const injectStyles = () => {
   s.textContent = `
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
+    :root, [data-theme="dark"] {
       --sidebar: #1a1b1e;
       --bg: #212226;
       --surface: #2a2b30;
@@ -35,6 +35,27 @@ const injectStyles = () => {
       --radius: 10px;
       --radius-sm: 6px;
       --shadow: 0 1px 3px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3);
+    }
+    [data-theme="light"] {
+      --sidebar: #f8f9fa;
+      --bg: #ffffff;
+      --surface: #f1f3f5;
+      --surface2: #e9ecef;
+      --border: #dee2e6;
+      --border-light: #f1f3f5;
+      --accent: #0061ff;
+      --accent-hover: #0052d9;
+      --accent-soft: rgba(0,97,255,0.08);
+      --text: #1a1b1e;
+      --text-2: #495057;
+      --text-3: #6c7178;
+      --green: #2f9e44;
+      --green-soft: rgba(47,158,68,0.08);
+      --amber: #e67700;
+      --amber-soft: rgba(230,119,0,0.08);
+      --red: #c92a2a;
+      --red-soft: rgba(201,42,42,0.06);
+      --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
     }
     body { font-family: 'Plus Jakarta Sans', -apple-system, sans-serif; background: var(--bg); color: var(--text); }
     ::-webkit-scrollbar { width: 5px; }
@@ -105,16 +126,17 @@ const injectStyles = () => {
     .progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.3s ease; }
 
     /* Terminal log */
-    .log-box { background: #0d0e12; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12.5px; line-height: 1.9; max-height: 200px; overflow-y: auto; }
-    .log-line-accent { color: #4dabf7; }
-    .log-line-dim { color: #5c5f66; }
-    .log-line-success { color: #69db7c; }
-    .log-line-error { color: #ff6b6b; }
-    .log-line-default { color: #adb5bd; }
+    .log-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12.5px; line-height: 1.9; max-height: 200px; overflow-y: auto; }
+    [data-theme="dark"] .log-box, :root .log-box { background: #0d0e12; }
+    .log-line-accent { color: var(--accent); }
+    .log-line-dim { color: var(--text-3); }
+    .log-line-success { color: var(--green); }
+    .log-line-error { color: var(--red); }
+    .log-line-default { color: var(--text-2); }
 
     /* Hash display */
     .hash-box { background: var(--surface2); border-radius: var(--radius-sm); padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-    .hash-value { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; color: #8ccfff; word-break: break-all; flex: 1; }
+    .hash-value { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; color: var(--accent); word-break: break-all; flex: 1; }
 
     /* Dot indicator */
     .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
@@ -835,9 +857,21 @@ const STATUS_ITEMS = [
 ];
 
 // ─── App Root ─────────────────────────────────────────────────────
+const getInitialTheme = () => {
+  const saved = localStorage.getItem("gd-theme");
+  if (saved === "light" || saved === "dark") return saved;
+  return window.matchMedia?.("(prefers-color-scheme: light)").matches ? "light" : "dark";
+};
+
 export default function App() {
   const [view, setView] = useState("source");
+  const [theme, setTheme] = useState(getInitialTheme);
   useEffect(() => { injectStyles(); }, []);
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("gd-theme", theme);
+  }, [theme]);
+  const toggleTheme = () => setTheme(t => t === "dark" ? "light" : "dark");
 
   return (
     <div style={{ display:"flex", height:"100vh", overflow:"hidden", background:"var(--bg)", fontFamily:"'Plus Jakarta Sans',-apple-system,sans-serif" }}>
@@ -885,6 +919,9 @@ export default function App() {
           <div style={{ marginTop:12, padding:"8px 10px", background:"var(--surface)", borderRadius:"var(--radius-sm)", fontSize:11.5, color:"var(--text-3)", lineHeight:1.5 }}>
             Logos Messaging: public fleet · Storage/Blockchain: run locally to activate
           </div>
+          <button onClick={toggleTheme} className="btn btn-ghost btn-sm" style={{ width:"100%", marginTop:10, justifyContent:"center", fontSize:12 }}>
+            {theme === "dark" ? "☀ Light mode" : "☾ Dark mode"}
+          </button>
         </div>
       </div>
 
@@ -895,7 +932,10 @@ export default function App() {
         <div className="gd-mobile-header" style={{ height:48, alignItems:"center", padding:"0 16px", borderBottom:"1px solid var(--border)", background:"var(--sidebar)", flexShrink:0, gap:10 }}>
           <GhostIcon size={18} />
           <span style={{ fontSize:15, fontWeight:700, color:"var(--text)" }}>GhostDrop</span>
-          <div style={{ marginLeft:"auto", display:"flex", gap:8 }}>
+          <div style={{ marginLeft:"auto", display:"flex", gap:6 }}>
+            <button onClick={toggleTheme} className="btn btn-ghost btn-sm" style={{ padding:"4px 8px", fontSize:12, minHeight:28 }}>
+              {theme === "dark" ? "☀" : "☾"}
+            </button>
             {NAV.map(n => (
               <button key={n.id} className={`btn btn-sm ${view===n.id?"btn-primary":"btn-ghost"}`} onClick={()=>setView(n.id)} style={{ padding:"4px 10px", fontSize:12 }}>
                 {n.icon}
@@ -905,20 +945,10 @@ export default function App() {
         </div>
 
         {/* Top bar */}
-        <div className="gd-topbar" style={{ height:56, display:"flex", alignItems:"center", padding:"0 28px", borderBottom:"1px solid var(--border)", background:"var(--sidebar)", flexShrink:0, justifyContent:"space-between" }}>
-          <div>
-            <span style={{ fontSize:15, fontWeight:600, color:"var(--text)" }}>
-              {NAV.find(n=>n.id===view)?.label}
-            </span>
-          </div>
-          <div style={{ display:"flex", alignItems:"center", gap:16 }}>
-            {STATUS_ITEMS.map(s => (
-              <div key={s.label} style={{ display:"flex", alignItems:"center", gap:6, fontSize:12.5, color:"var(--text-3)" }}>
-                <Dot status={s.statusKey} />
-                {s.label}
-              </div>
-            ))}
-          </div>
+        <div className="gd-topbar" style={{ height:56, display:"flex", alignItems:"center", padding:"0 28px", borderBottom:"1px solid var(--border)", background:"var(--sidebar)", flexShrink:0 }}>
+          <span style={{ fontSize:15, fontWeight:600, color:"var(--text)" }}>
+            {NAV.find(n=>n.id===view)?.label}
+          </span>
         </div>
 
         {/* Scrollable content */}
