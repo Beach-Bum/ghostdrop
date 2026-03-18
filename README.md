@@ -4,21 +4,21 @@
 
 No server to seize. No nonprofit to pressure. No identity to leak.
 
-> SecureDrop rebuilt from first principles — Logos Messaging for anonymous messaging, Logos Storage for permanent storage, Logos Blockchain for tamper-evident settlement.
+> SecureDrop rebuilt from first principles — Logos Messaging for anonymous transport, Logos Storage for permanent storage, Logos Blockchain for tamper-evident settlement.
 
 ---
 
 ## ✨ Features
 
 | Feature | Description |
-|---|---|
-| 🔒 **ECIES Encryption** | Every document is encrypted to the outlet's secp256k1 key before it leaves your browser |
-| 👻 **Logos Messaging Gossip** | Submissions route through a p2p gossip network — your IP is never sent directly to the outlet |
-| 🗄️ **Logos Storage Storage** | Published documents are content-addressed and replicated across decentralised storage nodes |
-| ⛓️ **Logos Blockchain Anchoring** | Document hashes are permanently anchored on-chain as tamper-evident proofs of publication |
+| --- | --- |
+| 🔒 **ECIES Encryption** | Every document is encrypted to the outlet's secp256k1 key before it leaves your device |
+| 👻 **Logos Messaging** | Submissions route through a p2p gossip network — your IP is never sent directly to the outlet |
+| 🗄️ **Logos Storage** | Published documents are content-addressed and replicated across decentralised storage nodes |
+| ⛓️ **Logos Blockchain** | Document hashes are permanently anchored on-chain as tamper-evident proofs of publication |
 | 🧹 **Metadata Stripping** | PDF, JPEG, DOCX and more are automatically stripped of author, GPS, timestamps and other identifying fields |
-| 🕵️ **OpSec Advisor** | Built-in Tor Browser detection, WebRTC IP leak check, and 6-point operational security assessment |
-| 💰 **Anonymous Tips** | Readers can lock XMR tips in Logos Blockchain escrow — claimable only by the source's 12-word ephemeral key |
+| 🕵️ **OpSec Advisor** | Built-in Tor Browser detection, WebRTC IP leak check, and operational security assessment |
+| 💰 **Anonymous Tips** | Readers can lock tips in Logos Blockchain escrow — claimable only by the source's 12-word ephemeral key |
 | 📡 **Back-Channel** | Sources poll the Logos Messaging Store for outlet replies — no persistent connection, no call-home |
 
 ---
@@ -26,26 +26,21 @@ No server to seize. No nonprofit to pressure. No identity to leak.
 ## 🏗️ Architecture
 
 ```
-SOURCE BROWSER                OUTLET                        READER
-      │                          │                              │
-      │  1. Upload file           │                              │
-      │  2. Scan metadata         │                              │
-      │  3. Strip metadata        │                              │
-      │     ├─ PDF  → pdf-lib     │                              │
-      │     ├─ JPEG → Canvas      │                              │
-      │     └─ DOCX → ZIP patch   │                              │
-      │  4. ECIES encrypt         │                              │
-      │     secp256k1 + AES-GCM   │                              │
-      │  5. Logos Messaging LightPush ──────►│                              │
-      │  6. Save 12-word key      │  6. Filter sub receives      │
-      │                           │  7. Decrypt + review         │
-      │                           │  8. Upload → Logos Storage           │
-      │                           │  9. Anchor → Logos Blockchain           │
-      │                           │     mantle_tx inscription    │
-      │                           │ 10. Announce → Logos Messaging ────────►│
-      │  ◄────────────────────────│                         11. Fetch Logos Storage
-      │  11. Poll back-channel    │                         12. Verify Logos Blockchain
-      │      (Logos Messaging Store)         │                         13. Tip → escrow
+SOURCE                        OUTLET                        READER
+  │                              │                              │
+  │  1. Upload file              │                              │
+  │  2. Scan metadata            │                              │
+  │  3. Strip metadata           │                              │
+  │  4. ECIES encrypt            │                              │
+  │     secp256k1 + AES-GCM     │                              │
+  │  5. Logos Messaging LightPush ──────►                       │
+  │  6. Save 12-word key         │  Decrypt + review            │
+  │                              │  Upload → Logos Storage      │
+  │                              │  Anchor → Logos Blockchain   │
+  │                              │  Announce → Logos Messaging ──────►
+  │  ◄─────────────────────      │                         Fetch Logos Storage
+  │  Poll back-channel           │                         Verify Logos Blockchain
+  │  (Logos Messaging Store)     │                         Tip → escrow
 ```
 
 ### Crypto primitives
@@ -59,121 +54,185 @@ Wire format:        [ephPub(33)] [nonce(12)] [ciphertext+tag]
 Claim key:          12-word mnemonic from ephemeral private key bytes
 ```
 
-### Logos Blockchain document anchor
+---
 
+## 🚀 Quick Start — Web App
+
+```bash
+git clone https://github.com/Beach-Bum/ghostdrop
+cd ghostdrop
+npm install
+npm run dev
 ```
-channel_id  = sha256("logos-drop-v1")   ← fixed, deterministic
-opcode      = 0                          ← inscription write
-inscription = UTF-8 JSON bytes:
-  { v, type, docHash, cid, outletId, headline, ts }
-```
+
+Logos Messaging connects to the public fleet automatically. Logos Storage and Logos Blockchain run in **mock mode** until you connect local nodes.
 
 ---
 
-## 🚀 Quick Start
+## 📦 Installing GhostDrop into Logos Basecamp
 
-### 1. Install
+GhostDrop runs as a **native Logos Basecamp module** — a first-class Qt/QML plugin loaded directly by the Logos kernel. Once installed, it appears as a tile in the Logos Basecamp launcher alongside the built-in wallet, chat, and storage apps.
+
+### Prerequisites
+
+| Requirement | Version | Install |
+| --- | --- | --- |
+| [Logos Basecamp](https://github.com/logos-co/logos-basecamp/releases/tag/v0.1) | v0.1+ | Download from the Logos Builder Hub |
+| Xcode Command Line Tools | latest | `xcode-select --install` |
+| Homebrew | latest | https://brew.sh |
+| Qt 6 | 6.4+ | `brew install qt@6` |
+| CMake | 3.16+ | `brew install cmake` |
+| logos-core-poc | latest | See step 2 below |
+
+### Step 1 — Install Logos Basecamp
+
+Download and install **LogosApp.app** from the [Logos Basecamp v0.1 release](https://github.com/logos-co/logos-basecamp/releases/tag/v0.1). Move it to your `/Applications` folder.
+
+Verify the install:
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/ghostdrop.git
-cd ghostdrop
-npm install
+ls /Applications/LogosApp.app/Contents/Frameworks/liblogos_core.dylib
 ```
 
-### 2. Run in dev mode
+You should see the file listed. If not, the app is not in the right place.
+
+### Step 2 — Install build tools
 
 ```bash
-npm run dev
-# → http://localhost:3000
+xcode-select --install
+brew install qt@6 cmake ninja
+echo 'export PATH="/opt/homebrew/opt/qt@6/bin:$PATH"' >> ~/.zshrc
+source ~/.zshrc
 ```
 
-Logos Messaging connects to the public fleet automatically. Logos Storage and Logos Blockchain run in **mock mode** until you connect local nodes (see below).
+### Step 3 — Clone the Logos core workspace
 
-### 3. Build for production
+GhostDrop's native module links against the Logos C++ SDK. You need a local copy:
 
 ```bash
-npm run build
-# Output in ./dist — deploy anywhere static files are served
+git clone https://github.com/logos-co/logos-core-poc ~/logos-core-poc
+cd ~/logos-core-poc
+git config --global url."https://github.com/".insteadOf "git@github.com:"
+git submodule update --init --recursive
 ```
+
+Build the code generator (required once):
+
+```bash
+cd ~/logos-core-poc/logos-cpp-sdk
+bash cpp-generator/compile.sh
+cd ~/logos-core-poc
+```
+
+### Step 4 — Clone GhostDrop and build
+
+```bash
+git clone https://github.com/Beach-Bum/ghostdrop ~/ghostdrop
+cd ~/ghostdrop
+chmod +x build_and_deploy.sh
+./build_and_deploy.sh
+```
+
+The script will:
+1. Configure and build `logos-ghostdrop-module` (C++ backend)
+2. Configure and build `logos-ghostdrop-ui` (QML frontend)
+3. Copy both `.dylib` files into `LogosApp.app/Contents/Frameworks/`
+
+Expected output:
+
+```
+╔══════════════════════════════════════════════════════╗
+║       GhostDrop Native Module — Build & Deploy       ║
+╚══════════════════════════════════════════════════════╝
+
+→ [1/4] Configuring ghostdrop-module…
+→ [2/4] Building ghostdrop-module…
+→ [3/4] Configuring & building ghostdrop-ui…
+→ [4/4] Deploying to LogosApp.app…
+
+✓ Deployed:
+  /Applications/LogosApp.app/Contents/Frameworks/ghostdrop_module_plugin.dylib
+  /Applications/LogosApp.app/Contents/Frameworks/ghostdrop_ui.dylib
+
+Launch LogosApp — GhostDrop will appear as a module tile.
+```
+
+### Step 5 — Launch Logos Basecamp
+
+Open **LogosApp** from your Applications folder. GhostDrop will appear as a module tile in the Basecamp launcher. Click it to open the full GhostDrop interface — Submit Document, Outlet Inbox, and Publications.
+
+### Verifying the install
+
+To confirm the plugins are in place:
+
+```bash
+ls /Applications/LogosApp.app/Contents/Frameworks/ | grep ghostdrop
+```
+
+You should see:
+
+```
+ghostdrop_module_plugin.dylib
+ghostdrop_ui.dylib
+```
+
+### Updating GhostDrop
+
+To update to a newer version:
+
+```bash
+cd ~/ghostdrop
+git pull
+./build_and_deploy.sh
+```
+
+Then relaunch LogosApp.
+
+### Troubleshooting
+
+**`cmake: command not found`**
+```bash
+brew install cmake
+```
+
+**`logos-cpp-generator: No such file or directory`**
+```bash
+cd ~/logos-core-poc/logos-cpp-sdk
+bash cpp-generator/compile.sh
+```
+
+**`lgx.h: file not found`**
+The `liblgx.dylib` header is not public. The build is pre-configured to link against the dylib inside LogosApp.app directly. Make sure LogosApp v0.1 is installed at `/Applications/LogosApp.app`.
+
+**GhostDrop tile doesn't appear in Basecamp**
+Check the plugins landed correctly:
+```bash
+ls /Applications/LogosApp.app/Contents/Frameworks/ | grep ghostdrop
+```
+If missing, re-run `./build_and_deploy.sh`. If present, restart LogosApp fully (quit from the menu bar, not just closing the window).
 
 ---
 
 ## 🔧 Connecting Real Nodes
 
-The app degrades gracefully — each layer works independently in mock mode.
-
-### Logos Messaging (messaging) — Live by default
+### Logos Messaging — Live by default
 Connects automatically to the Logos Messaging public fleet on load. No config needed.
 
-### Logos Storage (storage)
+### Logos Storage
 
 ```bash
-# Option A: Docker (easiest)
+# Docker (easiest)
 docker run -p 8080:8080 codexstorage/nim-codex
 
-# Option B: Binary
-# Download from https://github.com/codex-storage/nim-codex/releases
-./codex --api-port=8080
+# Or download binary from:
+# https://github.com/codex-storage/nim-codex/releases
 ```
 
-Once running, Logos Storage status in the sidebar turns green automatically.
-
-### Logos Blockchain (settlement)
+### Logos Blockchain
 
 ```bash
-# Clone the node
 git clone https://github.com/logos-co/nomos-node
-cd nomos-node
-
-# Run the local devnet
 cd testnet && docker compose up
-
-# Or build from source
-cargo build -p nomos-node --release
-```
-
-Once running, Logos Blockchain status turns green and document anchors are submitted as real on-chain transactions.
-
----
-
-## ⚙️ Environment Variables
-
-Copy `.env.example` to `.env.local` and edit:
-
-```bash
-cp .env.example .env.local
-```
-
-| Variable | Default | Description |
-|---|---|---|
-| `VITE_CODEX_NODE_URL` | `http://localhost:8080` | Logos Storage node REST API |
-| `VITE_NOMOS_RPC_URL` | `http://localhost:3001` | Logos Blockchain node RPC |
-| `VITE_WAKU_BOOTSTRAP_PEERS` | Logos Messaging public fleet | Optional custom bootstrap peers |
-
----
-
-## 📁 Project Structure
-
-```
-ghostdrop/
-├── src/
-│   ├── App.jsx                  # GhostDrop UI (source, outlet, reader views)
-│   ├── main.jsx                 # React entry point
-│   ├── services/
-│   │   ├── crypto.js            # ECIES encryption, key generation, mnemonic
-│   │   ├── waku.js              # Waku SDK: LightPush, Filter, Store
-│   │   ├── codex.js             # Codex SDK: upload, retrieve, marketplace
-│   │   ├── nomos.js             # Nomos REST: anchoring, tx queries, tip escrow
-│   │   ├── strip.js             # Metadata stripping: PDF, image, DOCX/XLSX
-│   │   └── transport.js         # Tor detection, WebRTC leak check, OpSec
-│   ├── components/
-│   │   ├── CodexStatus.jsx      # Live Logos Storage node health panel
-│   │   └── NomosStatus.jsx      # Live Logos Blockchain chain panel + block ticker
-│   └── utils/
-│       └── useWaku.js           # React hooks for Logos Messaging node lifecycle
-├── .env.example                 # Environment variable template
-├── vite.config.js               # Vite config with CORS proxies
-└── README.md
 ```
 
 ---
@@ -181,73 +240,77 @@ ghostdrop/
 ## 🛡️ Metadata Stripping Reference
 
 | Format | Technique | Fields Removed |
-|---|---|---|
-| **PDF** | pdf-lib rewrite | Title, Author, Subject, Keywords, Creator, Producer, Dates, XMP stream, Page actions |
-| **JPEG / PNG / TIFF / WebP** | Canvas redraw | EXIF, GPS, MakerNotes, IPTC, XMP, ICC profile, Thumbnail |
-| **DOCX / XLSX / PPTX** | ZIP/XML patch | creator, lastModifiedBy, dates, revision, Company, Manager, Template |
-| **Plain text** | Passthrough | n/a (no embedded metadata) |
-
-Every strip operation produces a **StripReport** containing SHA-256 hashes of the original and stripped document. This attestation is embedded in the submission envelope so the outlet can verify stripping occurred.
+| --- | --- | --- |
+| **PDF** | InfoDict patch + XMP removal | Author, Creator, Dates, Keywords, XMP stream |
+| **JPEG / PNG / TIFF / WebP** | Qt image re-render | EXIF, GPS, MakerNotes, IPTC, XMP, ICC, Thumbnail |
+| **DOCX / XLSX / PPTX** | ZIP/XML patch | creator, lastModifiedBy, dates, revision, Company |
+| **Plain text** | Passthrough | n/a |
 
 ---
 
-## 🔒 OpSec Guidance
+## 📁 Repository Structure
 
-The built-in OpSec advisor checks:
-
-1. **Tor Browser** — Tor Browser routes all connections (including Logos Messaging WebSockets) through Tor, hiding your IP from bootstrap peers. Strongly recommended.
-2. **WebRTC leak** — Detects real IP leakage through STUN even behind a VPN.
-3. **Browser fingerprinting** — Warns if your browser has a distinctive plugin/canvas fingerprint.
-4. **Device security** — Reminder not to submit from managed/work devices.
-5. **Printer steganography** — Colour laser printers embed invisible tracking dots. Photocopy on B&W before scanning.
-6. **Network timing** — ISP-level traffic correlation warning for non-Tor users.
-
-**Recommended setup for high-risk sources:**
 ```
-1. Boot Tails OS (https://tails.boum.org) — amnesic, leaves no traces
-2. Connect to public WiFi away from your usual location
-3. Open GhostDrop in Tor Browser (included in Tails)
-4. Submit — all connections go through Tor automatically
+ghostdrop/
+├── src/                           # Web app (React/JS)
+│   ├── App.jsx                    # Main UI — Source, Outlet, Reader views
+│   ├── services/
+│   │   ├── crypto.js              # ECIES encryption (compatible with C++ port)
+│   │   ├── waku.js                # Logos Messaging SDK: LightPush, Filter, Store
+│   │   ├── codex.js               # Logos Storage SDK: upload, retrieve
+│   │   ├── nomos.js               # Logos Blockchain REST: anchor, verify, tip
+│   │   ├── strip.js               # Metadata stripping: PDF, image, DOCX
+│   │   └── transport.js           # Tor detection, WebRTC leak check, OpSec
+│   └── views/
+│       ├── SourceView.jsx         # Submit flow (5 steps)
+│       ├── OutletView.jsx         # Outlet inbox + publish pipeline
+│       └── ReaderView.jsx         # Browse + verify + tip
+│
+├── logos-ghostdrop-module/        # Native C++ backend plugin (Logos Basecamp)
+│   ├── src/
+│   │   ├── CryptoService.cpp/h   # ECIES secp256k1+AES-GCM (OpenSSL)
+│   │   ├── StripService.cpp/h    # PDF/image/DOCX metadata stripping (Qt)
+│   │   ├── NetworkService.cpp/h  # Logos Storage + Logos Blockchain REST clients
+│   │   └── GhostDropCore.cpp/h   # Logos Messaging via Logos kernel IPC
+│   ├── ghostdrop_module_plugin.cpp
+│   ├── metadata.json
+│   └── CMakeLists.txt
+│
+├── logos-ghostdrop-ui/            # Native QML UI plugin (Logos Basecamp)
+│   ├── GhostDropUIComponent.cpp/h # IComponent — creates QQuickWidget
+│   ├── GhostDropBridge.cpp/h      # QObject bridge injected as "ghostDrop" in QML
+│   ├── src/
+│   │   ├── GhostDropRoot.qml      # Root layout: sidebar + nav
+│   │   ├── views/
+│   │   │   ├── SourceView.qml     # Submit flow (5 steps)
+│   │   │   ├── OutletView.qml     # Inbox + publish pipeline
+│   │   │   └── ReaderView.qml     # Browse + verify + tip
+│   │   └── components/
+│   │       └── Components.qml     # GButton, GAlert, HashDisplay, LogTerminal
+│   ├── metadata.json
+│   └── CMakeLists.txt
+│
+├── build_and_deploy.sh            # One-shot build + deploy to LogosApp.app
+├── package.json
+└── README.md
 ```
 
 ---
 
 ## 🗺️ Roadmap
 
-- [ ] **Wallet tx signing** — Submit real Logos Blockchain transactions once wallet API stabilises
-- [ ] **Outlet keystore** — Encrypted local keystore for outlet private key management
-- [ ] **Companion app** — Electron/Tauri app with bundled Tor daemon (removes browser limitations)
-- [ ] **Logos Storage incentives** — Paid marketplace storage for long-term replication guarantees
-- [ ] **Onion bootstrap peers** — Dedicated `.onion` Logos Messaging nodes for Tor-native routing
-- [ ] **ZK tip claims** — Zero-knowledge proof of ephemeral key for anonymous tip withdrawal
-- [ ] **Multi-outlet broadcast** — Submit to multiple outlets simultaneously
-
----
-
-## 🧱 Stack
-
-| Layer | Technology | Version |
-|---|---|---|
-| Messaging | [@waku/sdk](https://www.npmjs.com/package/@waku/sdk) | 0.0.27 |
-| Storage | [@codex-storage/sdk-js](https://www.npmjs.com/package/@codex-storage/sdk-js) | 0.1.3 |
-| Settlement | [Logos Blockchain REST API](https://github.com/logos-co/nomos-node) | devnet |
-| Encryption | [@noble/curves](https://github.com/paulmillr/noble-curves) + [@noble/ciphers](https://github.com/paulmillr/noble-ciphers) | latest |
-| PDF stripping | [pdf-lib](https://github.com/Hopding/pdf-lib) | 1.17.1 |
-| EXIF scanning | [exifr](https://github.com/MikeKovarik/exifr) | 7.1.3 |
-| ZIP manipulation | [fflate](https://github.com/101arrowz/fflate) | 0.8.2 |
-| UI framework | [React](https://react.dev) | 18.3.1 |
-| Build tool | [Vite](https://vitejs.dev) | 5.4 |
+- [x] Web app with full Logos stack integration
+- [x] WebView wrapper for Logos Basecamp
+- [x] Native Qt/QML Logos Basecamp module
+- [x] Full installation documentation
+- [ ] Logos Messaging routing through Logos Mixnet (AnonComms) for IP metadata privacy
+- [ ] Outlet keystore — encrypted local keystore for outlet private key management
+- [ ] Logos Storage marketplace incentives — paid storage for long-term replication
+- [ ] Onion bootstrap peers — dedicated `.onion` Logos Messaging nodes for Tor-native routing
+- [ ] ZK tip claims — zero-knowledge proof of ephemeral key for anonymous tip withdrawal
 
 ---
 
 ## 📄 Licence
 
 MIT — see [LICENSE](LICENSE)
-
----
-
-## 🤝 Contributing
-
-Pull requests welcome. Please open an issue first for significant changes.
-
-For security issues, please contact via [Logos Messaging back-channel](https://waku.org) rather than public GitHub issues.
