@@ -4,7 +4,7 @@
 
 No server to seize. No nonprofit to pressure. No identity to leak.
 
-> GhostDrop rebuilt from first principles — Logos Messaging for anonymous transport, Logos Storage for permanent storage, Logos Blockchain for tamper-evident settlement.
+> SecureDrop rebuilt from first principles — Logos Messaging for anonymous transport, Logos Storage for permanent storage, Logos Blockchain for tamper-evident settlement.
 
 ---
 
