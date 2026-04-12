@@ -16,7 +16,6 @@ No server to seize. No nonprofit to pressure. No identity to leak.
 
 > SecureDrop rebuilt from first principles — Logos Messaging for anonymous messaging, Logos Storage for permanent storage, Logos Blockchain for tamper-evident settlement.
 
-**[▶ Try the interactive demo](https://htmlpreview.github.io/?https://github.com/Beach-Bum/ghostdrop/blob/main/demo.html)**
 
 ---
 
